@@ -1,0 +1,157 @@
+name: Daily Data Update
+
+on:
+  schedule:
+    # 每天北京时间早上9点自动运行 (UTC 01:00)
+    - cron: '0 1 * * *'
+  workflow_dispatch:  # 也支持手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest data from Google Sheets
+        run: |
+          # 拉取产品投放数据
+          curl -sL "https://docs.google.com/spreadsheets/d/1jPoav8VPII5uK2GD8F-0kro8yelhTd8kkcf47AhnkcE/gviz/tq?tqx=out:csv&sheet=%E4%BA%A7%E5%93%81%E6%8A%95%E6%94%BE" -o /tmp/products.csv
+
+          # 拉取预算与支出数据
+          curl -sL "https://docs.google.com/spreadsheets/d/1jPoav8VPII5uK2GD8F-0kro8yelhTd8kkcf47AhnkcE/gviz/tq?tqx=out:csv&sheet=%E9%A2%84%E7%AE%97%E4%B8%8E%E6%94%AF%E5%87%BA" -o /tmp/budget.csv
+
+          echo "=== Products CSV ==="
+          head -20 /tmp/products.csv
+          echo ""
+          echo "=== Budget CSV ==="
+          head -20 /tmp/budget.csv
+
+      - name: Update dashboard data
+        run: |
+          node << 'SCRIPT'
+          const fs = require('fs');
+
+          // 解析 CSV
+          function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            return lines.map(line => {
+              const result = [];
+              let current = '';
+              let inQuotes = false;
+              for (let i = 0; i < line.length; i++) {
+                if (line[i] === '"') {
+                  inQuotes = !inQuotes;
+                } else if (line[i] === ',' && !inQuotes) {
+                  result.push(current.trim());
+                  current = '';
+                } else {
+                  current += line[i];
+                }
+              }
+              result.push(current.trim());
+              return result;
+            });
+          }
+
+          // 读取产品数据
+          const prodCSV = fs.readFileSync('/tmp/products.csv', 'utf8');
+          const prodRows = parseCSV(prodCSV);
+
+          // 跳过标题行（第一行是标题）
+          const products = [];
+          for (let i = 1; i < prodRows.length; i++) {
+            const r = prodRows[i];
+            if (!r[0] || r[0].startsWith('北斗')) continue;
+
+            const name = r[0].replace(/^["']|["']$/g, '').trim();
+            if (!name) continue;
+
+            const num = s => {
+              const n = parseFloat(String(s).replace(/[,%"]/g, ''));
+              return isNaN(n) ? 0 : n;
+            };
+
+            products.push({
+              name: name,
+              type: (r[1] || '').replace(/"/g, '').trim(),
+              target: num(r[3]),
+              budget: num(r[4]),
+              w1: num(r[7]),
+              w2: num(r[9]),
+              w3: num(r[11]),
+              w4: num(r[13]),
+              total: num(r[14]),
+              consume: num(r[15]),
+              completion: num(r[16]),
+              consumeRate: num(r[17]),
+              cpa: num(r[18]),
+            });
+          }
+
+          if (products.length === 0) {
+            console.log('No products parsed, skipping update');
+            process.exit(0);
+          }
+
+          console.log(`Parsed ${products.length} products`);
+          products.forEach(p => console.log(`  ${p.name}: target=${p.target} total=${p.total} consume=${p.consume}`));
+
+          // 读取 HTML
+          let html = fs.readFileSync('index.html', 'utf8');
+
+          // 构建新的 products JS 数组
+          const today = new Date().toISOString().slice(0, 10);
+          const productsJS = products.map(p =>
+            `  { name:'${p.name.replace(/'/g, "\\'")}', type:'${p.type}', target:${p.target}, budget:${p.budget}, w1:${p.w1}, w2:${p.w2}, w3:${p.w3}, w4:${p.w4}, total:${p.total}, consume:${p.consume}, completion:${p.completion}, consumeRate:${p.consumeRate}, cpa:${p.cpa} }`
+          ).join(',\n');
+
+          // 替换 lastUpdated
+          html = html.replace(
+            /const lastUpdated = '[^']*'/,
+            `const lastUpdated = '${today}'`
+          );
+
+          // 替换 products 数组
+          html = html.replace(
+            /const products = \[[\s\S]*?\];/,
+            `const products = [\n${productsJS},\n];`
+          );
+
+          // 更新汇总数据
+          const paid = products.filter(p => p.type === '付费');
+          const free = products.filter(p => p.type === '免费');
+          const totalNew = products.reduce((s, p) => s + p.total, 0);
+          const paidNew = paid.reduce((s, p) => s + p.total, 0);
+          const freeNew = free.reduce((s, p) => s + p.total, 0);
+          const totalConsume = products.reduce((s, p) => s + p.consume, 0);
+          const paidConsume = paid.reduce((s, p) => s + p.consume, 0);
+          const freeConsume = free.reduce((s, p) => s + p.consume, 0);
+          const overallCompletion = (totalNew / 3820000 * 100).toFixed(1);
+          const overallConsumeRate = (totalConsume / 12120000 * 100).toFixed(1);
+
+          // 更新概览页 KPI 中的实际新增数据
+          html = html.replace(
+            /累计新增 575,153/g,
+            `累计新增 ${paidNew.toLocaleString()}`
+          );
+          html = html.replace(
+            /累计新增 507,024/g,
+            `累计新增 ${freeNew.toLocaleString()}`
+          );
+
+          fs.writeFileSync('index.html', html);
+          console.log(`Updated! ${products.length} products, date: ${today}`);
+          console.log(`Total new: ${totalNew}, Consume: ${totalConsume}`);
+          SCRIPT
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "auto: daily data update $(date +%Y-%m-%d)"
+          git push
