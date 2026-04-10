@@ -957,7 +957,7 @@ function renderProduct() {
     tbody.innerHTML += `<tr>
       <td style="font-weight:500">${d.name}</td>
       <td style="text-align:center"><span class="badge ${d.type==='付费'?'badge-paid':'badge-free'}">${d.type}</span></td>
-      <td>${fmt(d.target)}</td>
+      <td>${d.target.toLocaleString()}</td>
       <td>${d.w1.toLocaleString()}</td>
       <td style="color:var(--text)">${d.total.toLocaleString()}</td>
       <td><div class="prog-row"><div class="prog-bar"><div class="prog-fill ${rateClass(d.completion)}" style="width:${d.completion}%"></div></div><span class="prog-val" style="color:${rateColor(d.completion)}">${d.completion}%</span></div></td>
