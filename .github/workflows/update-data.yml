@@ -102,8 +102,9 @@ jobs:
           // 读取 HTML
           let html = fs.readFileSync('index.html', 'utf8');
 
-          // 构建新的 products JS 数组
-          const today = new Date().toISOString().slice(0, 10);
+          // 构建新的 products JS 数组 - 使用北京时间
+          const nowCN = new Date(Date.now() + 8 * 3600 * 1000);
+          const today = nowCN.toISOString().slice(0, 16).replace('T', ' ');
           const productsJS = products.map(p =>
             `  { name:'${p.name.replace(/'/g, "\\'")}', type:'${p.type}', target:${p.target}, budget:${p.budget}, w1:${p.w1}, w2:${p.w2}, w3:${p.w3}, w4:${p.w4}, total:${p.total}, consume:${p.consume}, completion:${p.completion}, consumeRate:${p.consumeRate}, cpa:${p.cpa} }`
           ).join(',\n');
