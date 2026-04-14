@@ -532,6 +532,26 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
         cursor:pointer;outline:none;min-width:180px;
       "></select>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:var(--text2);">起始日期</span>
+      <select id="daily3DateStart" onchange="renderDaily3()" style="
+        background:var(--surface2);border:1px solid var(--border);color:var(--text);
+        padding:8px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;
+        cursor:pointer;outline:none;min-width:100px;
+      "></select>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:var(--text2);">结束日期</span>
+      <select id="daily3DateEnd" onchange="renderDaily3()" style="
+        background:var(--surface2);border:1px solid var(--border);color:var(--text);
+        padding:8px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;
+        cursor:pointer;outline:none;min-width:100px;
+      "></select>
+    </div>
+    <button onclick="resetDaily3Dates()" style="
+      background:transparent;border:1px solid var(--border);color:var(--text2);
+      padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;
+    ">重置</button>
     <div id="daily3KPIs" style="display:flex;gap:12px;flex:1;justify-content:flex-end;"></div>
   </div>
 
@@ -708,6 +728,26 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
         cursor:pointer;outline:none;min-width:180px;
       "></select>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:var(--text2);">起始日期</span>
+      <select id="dailyExpDateStart" onchange="renderDailyExp()" style="
+        background:var(--surface2);border:1px solid var(--border);color:var(--text);
+        padding:8px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;
+        cursor:pointer;outline:none;min-width:100px;
+      "></select>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:var(--text2);">结束日期</span>
+      <select id="dailyExpDateEnd" onchange="renderDailyExp()" style="
+        background:var(--surface2);border:1px solid var(--border);color:var(--text);
+        padding:8px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;
+        cursor:pointer;outline:none;min-width:100px;
+      "></select>
+    </div>
+    <button onclick="resetDailyExpDates()" style="
+      background:transparent;border:1px solid var(--border);color:var(--text2);
+      padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;
+    ">重置</button>
     <div id="dailyExpKPIs" style="display:flex;gap:12px;flex:1;justify-content:flex-end;"></div>
   </div>
 
@@ -1415,6 +1455,18 @@ function initDaily3Select() {
   sel.innerHTML = products.map(p =>
     `<option value="${p.name}">${p.name}（${p.type}）</option>`
   ).join('');
+  // 日期下拉
+  const allDates = [...new Set(Object.values(dailyData).flat().map(d => d[0]))].sort();
+  const optsStart = '<option value="">全部</option>' + allDates.map(d => `<option value="${d}">${d}</option>`).join('');
+  const optsEnd = '<option value="">全部</option>' + allDates.map(d => `<option value="${d}">${d}</option>`).join('');
+  document.getElementById('daily3DateStart').innerHTML = optsStart;
+  document.getElementById('daily3DateEnd').innerHTML = optsEnd;
+}
+
+function resetDaily3Dates() {
+  document.getElementById('daily3DateStart').value = '';
+  document.getElementById('daily3DateEnd').value = '';
+  renderDaily3();
 }
 
 function renderDaily3() {
@@ -1422,7 +1474,13 @@ function renderDaily3() {
   const sel = document.getElementById('daily3ProductSelect');
   const name = sel.value;
   const prod = products.find(p => p.name === name);
-  const days = dailyData[name] || [];
+  let days = dailyData[name] || [];
+
+  // 日期范围筛选
+  const dStart = document.getElementById('daily3DateStart').value;
+  const dEnd = document.getElementById('daily3DateEnd').value;
+  if (dStart) days = days.filter(d => d[0] >= dStart);
+  if (dEnd) days = days.filter(d => d[0] <= dEnd);
 
   if (!days.length) {
     document.getElementById('daily3KPIs').innerHTML = '<span style="font-size:12px;color:var(--text3);">暂无每日数据</span>';
@@ -1568,6 +1626,18 @@ function initDailyExpSelect() {
   sel.innerHTML = products.map(p =>
     `<option value="${p.name}">${p.name}（${p.type}）</option>`
   ).join('');
+  // 日期下拉
+  const allDates = [...new Set(Object.values(dailyData).flat().map(d => d[0]))].sort();
+  const optsStart = '<option value="">全部</option>' + allDates.map(d => `<option value="${d}">${d}</option>`).join('');
+  const optsEnd = '<option value="">全部</option>' + allDates.map(d => `<option value="${d}">${d}</option>`).join('');
+  document.getElementById('dailyExpDateStart').innerHTML = optsStart;
+  document.getElementById('dailyExpDateEnd').innerHTML = optsEnd;
+}
+
+function resetDailyExpDates() {
+  document.getElementById('dailyExpDateStart').value = '';
+  document.getElementById('dailyExpDateEnd').value = '';
+  renderDailyExp();
 }
 
 function renderDailyExp() {
@@ -1575,10 +1645,16 @@ function renderDailyExp() {
   const sel = document.getElementById('dailyExpProductSelect');
   const name = sel.value;
   const prod = products.find(p => p.name === name);
-  const days = dailyData[name] || [];
+  let days = dailyData[name] || [];
+
+  // 日期范围筛选
+  const dStart = document.getElementById('dailyExpDateStart').value;
+  const dEnd = document.getElementById('dailyExpDateEnd').value;
+  if (dStart) days = days.filter(d => d[0] >= dStart);
+  if (dEnd) days = days.filter(d => d[0] <= dEnd);
 
   if (!days.length || !prod) {
-    document.getElementById('dailyExpKPIs').innerHTML = '<span style="font-size:12px;color:var(--text3);">暂无每日数据</span>';
+    document.getElementById('dailyExpKPIs').innerHTML = '<span style="font-size:12px;color:var(--text3);">暂无每日数据（当前筛选范围）</span>';
     document.getElementById('dailyExpTable').innerHTML = '';
     document.getElementById('dailyExpStatRow').innerHTML = '';
     document.getElementById('dailyExpProgress').innerHTML = '';
