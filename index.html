@@ -308,6 +308,10 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
       <span class="nav-label">预算与支出</span>
       <span class="nav-dot"></span>
     </div>
+    <div class="nav-sub" id="navSubBudget">
+      <div class="nav-sub-item active" onclick="switchBudgetSub('main',this)">预算总览</div>
+      <div class="nav-sub-item" onclick="switchBudgetSub('dailyexp',this)">每日支出</div>
+    </div>
     <div class="nav-item" onclick="switchPage('team',this)">
       <span class="nav-icon">&#128101;</span>
       <span class="nav-label">人员与分工</span>
@@ -687,6 +691,75 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   </div>
 </div>
 
+<!-- ═══ PAGE 3B: 每日支出 ═══ -->
+<div class="page" id="page-dailyexp">
+  <div class="section-title">每日支出</div>
+  <div class="section-sub">2026年4月 · 按产品追踪每日消耗及预算使用情况 · 从侧边栏「预算与支出 → 每日支出」进入</div>
+
+  <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:var(--text2);">选择产品</span>
+      <select id="dailyExpProductSelect" onchange="renderDailyExp()" style="
+        background:var(--surface2);border:1px solid var(--border);color:var(--text);
+        padding:8px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;
+        cursor:pointer;outline:none;min-width:180px;
+      "></select>
+    </div>
+    <div id="dailyExpKPIs" style="display:flex;gap:12px;flex:1;justify-content:flex-end;"></div>
+  </div>
+
+  <!-- 产品预算概况 -->
+  <div class="stat-row" id="dailyExpStatRow" style="margin-bottom:24px;"></div>
+
+  <!-- 预算消耗进度条 -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">预算消耗进度</div>
+    <div id="dailyExpProgress"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">每日消耗趋势</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="dailyExpTrendChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">累计消耗 vs 预算线</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="dailyExpCumChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">每日消耗对比</div>
+      <div class="chart-wrap chart-h240">
+        <canvas id="dailyExpBarChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">消耗 vs 新增 关系</div>
+      <div class="chart-wrap chart-h240">
+        <canvas id="dailyExpScatterChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">每日支出明细</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>日期</th><th>当日消耗</th><th>当日新增</th><th>当日CPA</th><th>累计消耗</th><th>消耗占比</th><th>剩余预算</th><th>消耗进度</th></tr>
+        </thead>
+        <tbody id="dailyExpTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ PAGE 4: 人员与分工 ═══ -->
 <div class="page" id="page-team">
   <div class="section-title">人员与分工</div>
@@ -981,19 +1054,26 @@ function switchPage(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.nav-sub').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   el.classList.add('active');
-  const titles = { overview:'项目概览', product:'产品投放', budget:'预算与支出', team:'人员与分工', review:'月度复盘', daily3:'每日明细' };
-  document.getElementById('topbarTitle').textContent = titles[id] || '产品投放';
+  const titles = { overview:'项目概览', product:'产品投放', budget:'预算与支出', team:'人员与分工', review:'月度复盘', daily3:'每日明细', dailyexp:'每日支出' };
+  document.getElementById('topbarTitle').textContent = titles[id] || '';
   if (id === 'product' || id === 'daily3') {
     document.getElementById('navSubProduct').classList.add('open');
+    document.querySelector('#navSubProduct .nav-sub-item' + (id === 'daily3' ? ':nth-child(2)' : ':nth-child(1)')).classList.add('active');
+  }
+  if (id === 'budget' || id === 'dailyexp') {
+    document.getElementById('navSubBudget').classList.add('open');
+    document.querySelector('#navSubBudget .nav-sub-item' + (id === 'dailyexp' ? ':nth-child(2)' : ':nth-child(1)')).classList.add('active');
   }
   if (id === 'product' && !window._productDone) renderProduct();
   if (id === 'budget'  && !window._budgetDone)  renderBudget();
   if (id === 'daily3'  && !window._daily3Done)  { initDaily3Select(); renderDaily3(); }
+  if (id === 'dailyexp' && !window._dailyExpDone) { initDailyExpSelect(); renderDailyExp(); }
 }
 
-// 方案三：子导航切换
+// 产品投放 - 子导航切换
 function switchProductSub(sub, el) {
   document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
@@ -1006,6 +1086,22 @@ function switchProductSub(sub, el) {
     document.getElementById('topbarTitle').textContent = '每日明细';
     document.getElementById('navSubProduct').classList.add('open');
     if (!window._daily3Done) { initDaily3Select(); renderDaily3(); }
+  }
+}
+
+// 预算与支出 - 子导航切换
+function switchBudgetSub(sub, el) {
+  document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  if (sub === 'main') {
+    const navItem = document.querySelectorAll('.nav-item')[2];
+    switchPage('budget', navItem);
+  } else if (sub === 'dailyexp') {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-dailyexp').classList.add('active');
+    document.getElementById('topbarTitle').textContent = '每日支出';
+    document.getElementById('navSubBudget').classList.add('open');
+    if (!window._dailyExpDone) { initDailyExpSelect(); renderDailyExp(); }
   }
 }
 
@@ -1330,6 +1426,216 @@ function renderDaily3() {
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ labels:{ color:'#8892aa', font:defaultFont } }, tooltip:{ callbacks:{ label:c=>` ${c.dataset.label}: ${c.raw.toLocaleString()}` } } },
       scales:{ x:{ grid:{display:false}, ticks:{color:'#8892aa',font:{size:10}}, border:{color:'transparent'} }, y:{ grid:{color:gridColor}, ticks:{color:tickColor,font:defaultFont,callback:v=>fmt(v)}, border:{color:'transparent'} } }
+    }
+  });
+}
+
+// ── 每日支出（独立子页）──
+let deTrendChart = null, deCumChart = null, deBarChart = null, deScatterChart = null;
+
+function initDailyExpSelect() {
+  const sel = document.getElementById('dailyExpProductSelect');
+  sel.innerHTML = products.map(p =>
+    `<option value="${p.name}">${p.name}（${p.type}）</option>`
+  ).join('');
+}
+
+function renderDailyExp() {
+  window._dailyExpDone = true;
+  const sel = document.getElementById('dailyExpProductSelect');
+  const name = sel.value;
+  const prod = products.find(p => p.name === name);
+  const days = dailyData[name] || [];
+
+  if (!days.length || !prod) {
+    document.getElementById('dailyExpKPIs').innerHTML = '<span style="font-size:12px;color:var(--text3);">暂无每日数据</span>';
+    document.getElementById('dailyExpTable').innerHTML = '';
+    document.getElementById('dailyExpStatRow').innerHTML = '';
+    document.getElementById('dailyExpProgress').innerHTML = '';
+    return;
+  }
+
+  const totalDayNew = days.reduce((s, d) => s + d[1], 0);
+  const totalDayCost = days.reduce((s, d) => s + d[2], 0);
+  const avgCost = Math.round(totalDayCost / days.length);
+  const avgNew = Math.round(totalDayNew / days.length);
+  const avgCPA = totalDayNew > 0 ? (totalDayCost / totalDayNew).toFixed(2) : '—';
+  const maxCostDay = days.reduce((m, d) => d[2] > m[2] ? d : m, days[0]);
+  const remainingBudget = prod.budget - totalDayCost;
+  const budgetUseRate = (totalDayCost / prod.budget * 100).toFixed(2);
+
+  // KPI 卡片
+  document.getElementById('dailyExpKPIs').innerHTML = `
+    <div style="padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);text-align:center;">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;">日均消耗</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--amber);">${avgCost.toLocaleString()}</div>
+    </div>
+    <div style="padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);text-align:center;">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;">最高单日</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--red);">${maxCostDay[2].toLocaleString()}</div>
+    </div>
+    <div style="padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);text-align:center;">
+      <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;">平均CPA</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--gold);">¥${avgCPA}</div>
+    </div>
+  `;
+
+  // Stat row：产品预算概况
+  document.getElementById('dailyExpStatRow').innerHTML = `
+    <div class="stat-item"><div class="stat-label">月度预算</div><div class="stat-value c-blue">${prod.budget.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">累计消耗</div><div class="stat-value c-amber">${totalDayCost.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">剩余预算</div><div class="stat-value" style="color:${remainingBudget > 0 ? 'var(--green)' : 'var(--red)'}">${remainingBudget.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">消耗率</div><div class="stat-value" style="color:${consumeColor(parseFloat(budgetUseRate))}">${budgetUseRate}%</div></div>
+    <div class="stat-item"><div class="stat-label">累计新增</div><div class="stat-value c-green">${totalDayNew.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">统计天数</div><div class="stat-value c-muted">${days.length}天</div></div>
+  `;
+
+  // 进度条
+  const useRateNum = parseFloat(budgetUseRate);
+  const barColor = useRateNum >= 80 ? 'var(--red)' : useRateNum >= 50 ? 'var(--amber)' : useRateNum >= 25 ? 'var(--gold)' : 'var(--green)';
+  document.getElementById('dailyExpProgress').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center;">
+      <div>
+        <span style="font-size:13px;color:var(--text2);">预算使用情况</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:${barColor};margin-left:12px;font-weight:700;">${budgetUseRate}%</span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);">
+        <span style="color:var(--amber);">${totalDayCost.toLocaleString()}</span>
+        <span style="color:var(--text3);"> / </span>
+        <span>${prod.budget.toLocaleString()}</span>
+      </div>
+    </div>
+    <div style="height:10px;background:rgba(255,255,255,0.05);border-radius:5px;overflow:hidden;">
+      <div style="width:${Math.min(useRateNum, 100)}%;height:100%;background:linear-gradient(90deg, ${barColor}aa, ${barColor});border-radius:5px;transition:width 1s ease;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;">
+      <span style="font-size:10px;color:var(--text3);">0%</span>
+      <span style="font-size:10px;color:var(--text3);">50%</span>
+      <span style="font-size:10px;color:var(--text3);">预警线 80%</span>
+      <span style="font-size:10px;color:var(--text3);">100%</span>
+    </div>
+  `;
+
+  // 表格
+  const tbody = document.getElementById('dailyExpTable');
+  let cumCost = 0;
+  tbody.innerHTML = days.map(d => {
+    cumCost += d[2];
+    const cpa = d[1] > 0 ? (d[2] / d[1]).toFixed(2) : '—';
+    const dailyPct = totalDayCost > 0 ? (d[2] / totalDayCost * 100).toFixed(1) : '0';
+    const remain = prod.budget - cumCost;
+    const useRate = (cumCost / prod.budget * 100).toFixed(1);
+    const ur = parseFloat(useRate);
+    const urColor = ur >= 80 ? 'var(--red)' : ur >= 50 ? 'var(--amber)' : 'var(--green)';
+    return `<tr>
+      <td style="font-weight:500">${d[0]}</td>
+      <td class="c-amber">${d[2].toLocaleString()}</td>
+      <td class="c-blue">${d[1].toLocaleString()}</td>
+      <td class="c-gold">¥${cpa}</td>
+      <td>${cumCost.toLocaleString()}</td>
+      <td class="c-muted">${dailyPct}%</td>
+      <td style="color:${remain > 0 ? 'var(--green)' : 'var(--red)'}">${remain.toLocaleString()}</td>
+      <td><div class="prog-row"><div class="prog-bar"><div class="prog-fill" style="width:${Math.min(ur,100)}%;background:${urColor};"></div></div><span class="prog-val" style="color:${urColor}">${useRate}%</span></div></td>
+    </tr>`;
+  }).join('');
+
+  // 每日消耗趋势图
+  if (deTrendChart) deTrendChart.destroy();
+  deTrendChart = new Chart(document.getElementById('dailyExpTrendChart'), {
+    type: 'line',
+    data: {
+      labels: days.map(d => d[0]),
+      datasets: [{
+        label: '当日消耗',
+        data: days.map(d => d[2]),
+        borderColor: 'rgba(245,166,35,0.9)',
+        backgroundColor: 'rgba(245,166,35,0.15)',
+        fill: true, tension: 0.3, pointRadius: 4,
+        pointBackgroundColor: 'var(--amber)', borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` 消耗: ${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
+    }
+  });
+
+  // 累计消耗 vs 预算线
+  let cumArr = [], c = 0;
+  days.forEach(d => { c += d[2]; cumArr.push(c); });
+  const budgetLine = days.map(() => prod.budget);
+  const avgBudgetLine = days.map((_, i) => Math.round(prod.budget / 30 * (i + 1)));
+
+  if (deCumChart) deCumChart.destroy();
+  deCumChart = new Chart(document.getElementById('dailyExpCumChart'), {
+    type: 'line',
+    data: {
+      labels: days.map(d => d[0]),
+      datasets: [
+        { label: '累计消耗', data: cumArr, borderColor: 'rgba(245,166,35,0.9)', backgroundColor: 'rgba(245,166,35,0.1)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: 'var(--amber)', borderWidth: 2 },
+        { label: '预算上限', data: budgetLine, borderColor: 'rgba(242,92,122,0.7)', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, fill: false },
+        { label: '预算均匀线', data: avgBudgetLine, borderColor: 'rgba(201,168,76,0.4)', borderWidth: 1, borderDash: [3, 3], pointRadius: 0, fill: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8892aa', font: defaultFont } }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
+    }
+  });
+
+  // 每日消耗对比柱状图
+  if (deBarChart) deBarChart.destroy();
+  deBarChart = new Chart(document.getElementById('dailyExpBarChart'), {
+    type: 'bar',
+    data: {
+      labels: days.map(d => d[0]),
+      datasets: [{
+        data: days.map(d => d[2]),
+        backgroundColor: days.map(d => d[2] >= avgCost ? 'rgba(245,166,35,0.8)' : 'rgba(74,144,226,0.5)'),
+        borderRadius: 4, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` 消耗: ${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
+    }
+  });
+
+  // 消耗 vs 新增散点图
+  if (deScatterChart) deScatterChart.destroy();
+  deScatterChart = new Chart(document.getElementById('dailyExpScatterChart'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: '每日',
+        data: days.map(d => ({ x: d[1], y: d[2], date: d[0] })),
+        backgroundColor: 'rgba(201,168,76,0.6)',
+        borderColor: 'var(--gold)', borderWidth: 1,
+        pointRadius: 6, pointHoverRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.raw.date}  新增:${c.raw.x.toLocaleString()}  消耗:${c.raw.y.toLocaleString()}` } }
+      },
+      scales: {
+        x: { title: { display: true, text: '当日新增', color: tickColor, font: { size: 10 } }, grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } },
+        y: { title: { display: true, text: '当日消耗', color: tickColor, font: { size: 10 } }, grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
     }
   });
 }
