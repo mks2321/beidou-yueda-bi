@@ -1005,26 +1005,26 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 // ║              数据更新区 — 每次只需修改这里                        ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
-const lastUpdated = '2026-04-13';
+const lastUpdated = '2026-04-14';
 
 const products = [
   { name:'妻友', type:'付费', target:25000, budget:167000, w1:7732, w2:6853, w3:0, w4:0, total:14585, consume:7377, completion:58.34, consumeRate:4.42, cpa:0.51 },
   { name:'海角乱伦社区', type:'付费', target:220000, budget:1260000, w1:50186, w2:39120, w3:0, w4:0, total:89306, consume:483009, completion:40.59, consumeRate:38.33, cpa:5.41 },
   { name:'暗网禁区', type:'付费', target:70000, budget:477000, w1:19851, w2:17024, w3:0, w4:0, total:36875, consume:145911, completion:52.68, consumeRate:30.59, cpa:3.96 },
-  { name:'Al色色', type:'付费', target:40000, budget:493000, w1:8508, w2:8293, w3:0, w4:0, total:16801, consume:42060, completion:42.00, consumeRate:8.53, cpa:2.50 },
+  { name:'Al色色', type:'付费', target:40000, budget:493000, w1:8508, w2:8293, w3:0, w4:0, total:16801, consume:42060, completion:42, consumeRate:8.53, cpa:2.5 },
   { name:'91短视频', type:'付费', target:180000, budget:477000, w1:43146, w2:40981, w3:0, w4:0, total:84127, consume:82244, completion:46.74, consumeRate:17.24, cpa:0.98 },
   { name:'TikTok成人版', type:'付费', target:460000, budget:2390000, w1:125466, w2:103752, w3:0, w4:0, total:229218, consume:626508, completion:49.83, consumeRate:26.21, cpa:2.73 },
   { name:'Pornhub中文版', type:'付费', target:150000, budget:427000, w1:32846, w2:38845, w3:0, w4:0, total:71691, consume:338718, completion:47.79, consumeRate:79.33, cpa:4.72 },
-  { name:'良淫（抖阴Max）', type:'付费', target:30000, budget:231000, w1:7094, w2:5246, w3:0, w4:0, total:12340, consume:5992, completion:41.13, consumeRate:2.59, cpa:0.49 },
+  { name:'「良淫（抖阴Max）', type:'付费', target:30000, budget:231000, w1:7094, w2:5246, w3:0, w4:0, total:12340, consume:5992, completion:41.13, consumeRate:2.59, cpa:0.49 },
   { name:'51动漫', type:'付费', target:100000, budget:229000, w1:47344, w2:37628, w3:0, w4:0, total:84972, consume:216039, completion:84.97, consumeRate:94.34, cpa:2.54 },
   { name:'51品茶', type:'付费', target:100000, budget:1677000, w1:19317, w2:31874, w3:0, w4:0, total:51191, consume:232220, completion:51.19, consumeRate:13.85, cpa:4.54 },
-  { name:'禁漫天堂', type:'付费', target:120000, budget:301000, w1:49014, w2:92863, w3:0, w4:0, total:141877, consume:57061, completion:118.23, consumeRate:18.96, cpa:0.40 },
+  { name:'禁漫天堂', type:'付费', target:120000, budget:301000, w1:49014, w2:92863, w3:0, w4:0, total:141877, consume:57061, completion:118.23, consumeRate:18.96, cpa:0.4 },
   { name:'91Pron', type:'付费', target:350000, budget:1031000, w1:101336, w2:105586, w3:0, w4:0, total:206922, consume:836694, completion:59.12, consumeRate:81.15, cpa:4.04 },
   { name:'萝莉岛APP', type:'付费', target:75000, budget:460000, w1:13339, w2:12016, w3:0, w4:0, total:25355, consume:121466, completion:33.81, consumeRate:26.41, cpa:4.79 },
-  { name:'51成人破解', type:'免费', target:300000, budget:540000, w1:77392, w2:61120, w3:0, w4:0, total:138512, consume:98799, completion:46.17, consumeRate:18.30, cpa:0.71 },
-  { name:'51推特破解', type:'免费', target:500000, budget:560000, w1:94745, w2:85766, w3:0, w4:0, total:180511, consume:167421, completion:36.10, consumeRate:29.90, cpa:0.93 },
+  { name:'51成人破解', type:'免费', target:300000, budget:540000, w1:77392, w2:61120, w3:0, w4:0, total:138512, consume:98799, completion:46.17, consumeRate:18.3, cpa:0.71 },
+  { name:'51推特破解', type:'免费', target:500000, budget:560000, w1:94745, w2:85766, w3:0, w4:0, total:180511, consume:167421, completion:36.1, consumeRate:29.9, cpa:0.93 },
   { name:'51tiktok破解', type:'免费', target:600000, budget:630000, w1:230266, w2:157421, w3:0, w4:0, total:387687, consume:263781, completion:64.61, consumeRate:41.87, cpa:0.68 },
-  { name:'pornhub免费版', type:'免费', target:500000, budget:770000, w1:104621, w2:89217, w3:0, w4:0, total:193838, consume:173848, completion:38.77, consumeRate:22.58, cpa:0.90 },
+  { name:'pornhub免费版', type:'免费', target:500000, budget:770000, w1:104621, w2:89217, w3:0, w4:0, total:193838, consume:173848, completion:38.77, consumeRate:22.58, cpa:0.9 },
 ];
 
 const fmt = n => n >= 1000000 ? (n/1000000).toFixed(2)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n;
