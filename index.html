@@ -1032,7 +1032,19 @@ const rateColor = r => r >= 35 ? 'var(--green)' : r >= 25 ? 'var(--gold)' : 'var
 const rateClass = r => r >= 35 ? 'prog-high' : r >= 25 ? 'prog-med' : 'prog-low';
 const consumeColor = r => r >= 50 ? 'var(--red)' : r >= 20 ? 'var(--amber)' : 'var(--green)';
 
-document.getElementById('updateTimeVal').textContent = lastUpdated;
+// 实时显示当前时间（每秒刷新）
+function updateRealTime() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const h = String(now.getHours()).padStart(2, '0');
+  const mi = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('updateTimeVal').textContent = `${y}-${m}-${d} ${h}:${mi}:${s}`;
+}
+updateRealTime();
+setInterval(updateRealTime, 1000);
 
 // NAV
 function switchPage(id, el) {
