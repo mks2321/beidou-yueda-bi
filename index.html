@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>北斗-悦达 | 渠道管理工作台</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="orders.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -311,11 +312,17 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     <div class="nav-sub" id="navSubBudget">
       <div class="nav-sub-item active" onclick="switchBudgetSub('main',this)">预算总览</div>
       <div class="nav-sub-item" onclick="switchBudgetSub('dailyexp',this)">每日支出</div>
+      <div class="nav-sub-item" onclick="switchBudgetSub('orders',this)">订单流水</div>
+      <div class="nav-sub-item" onclick="switchBudgetSub('coop',this)">合作方式分析</div>
     </div>
     <div class="nav-item" onclick="switchPage('team',this)">
       <span class="nav-icon">&#128101;</span>
       <span class="nav-label">人员与分工</span>
       <span class="nav-dot"></span>
+    </div>
+    <div class="nav-sub" id="navSubTeam">
+      <div class="nav-sub-item active" onclick="switchTeamSub('main',this)">团队架构</div>
+      <div class="nav-sub-item" onclick="switchTeamSub('perf',this)">投放人绩效</div>
     </div>
     <div class="nav-item" onclick="switchPage('review',this)">
       <span class="nav-icon">&#128203;</span>
@@ -760,6 +767,122 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   </div>
 </div>
 
+<!-- ═══ PAGE 3C: 订单流水 ═══ -->
+<div class="page" id="page-orders">
+  <div class="section-title">订单流水</div>
+  <div class="section-sub">2026年4月 · 渠道请款订单明细 · 共1,163笔订单 · 支持多维筛选</div>
+
+  <!-- 筛选器 -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">筛选</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
+      <div>
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;">APP</div>
+        <select id="filterApp" onchange="renderOrders()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;"><option value="">全部</option></select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;">投放人</div>
+        <select id="filterOp" onchange="renderOrders()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;"><option value="">全部</option></select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;">合作方式</div>
+        <select id="filterCoop" onchange="renderOrders()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;"><option value="">全部</option></select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;">请款类型</div>
+        <select id="filterReqType" onchange="renderOrders()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;"><option value="">全部</option></select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;">日期</div>
+        <select id="filterDate" onchange="renderOrders()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;"><option value="">全部</option></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI 汇总 -->
+  <div class="stat-row" id="ordersStatRow"></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">按日期请款趋势</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="ordersDateChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">APP 请款占比 TOP10</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="ordersAppChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 订单明细表 -->
+  <div class="card">
+    <div class="card-title">订单明细 <span id="ordersCount" style="font-size:11px;color:var(--text3);margin-left:12px;font-weight:normal;"></span></div>
+    <div class="tbl-wrap" style="max-height:600px;overflow-y:auto;">
+      <table>
+        <thead>
+          <tr><th>日期</th><th>APP</th><th>类型</th><th>渠道码</th><th>投放人</th><th>合作</th><th>请款类型</th><th>新增</th><th>充值</th><th>请款</th></tr>
+        </thead>
+        <tbody id="ordersTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 3D: 合作方式分析 ═══ -->
+<div class="page" id="page-coop">
+  <div class="section-title">合作方式分析</div>
+  <div class="section-sub">2026年4月 · 按合作方式（CPT/CPA/CPC/CPS）与请款类型（续费/预付/结算）拆分分析</div>
+
+  <!-- 合作方式 KPI -->
+  <div class="kpi-grid kpi-grid-4" id="coopKPIGrid"></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">合作方式请款占比</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="coopPieChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">请款类型占比</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="reqTypePieChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">合作方式 × APP 交叉分析</div>
+    <div class="chart-wrap chart-h320">
+      <canvas id="coopStackChart"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">合作方式明细</div>
+      <table>
+        <thead>
+          <tr><th>合作方式</th><th>订单数</th><th>请款金额</th><th>占比</th><th>平均单笔</th></tr>
+        </thead>
+        <tbody id="coopTable"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">请款类型明细</div>
+      <table>
+        <thead>
+          <tr><th>请款类型</th><th>订单数</th><th>请款金额</th><th>占比</th><th>平均单笔</th></tr>
+        </thead>
+        <tbody id="reqTypeTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ PAGE 4: 人员与分工 ═══ -->
 <div class="page" id="page-team">
   <div class="section-title">人员与分工</div>
@@ -858,6 +981,63 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
         <div class="team-name">吴限</div><div class="team-dept">产品增长</div><div class="team-role">增长策略（兼）</div>
         <div class="team-task">产品增长策略·数据分析</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 4B: 投放人绩效 ═══ -->
+<div class="page" id="page-perf">
+  <div class="section-title">投放人绩效</div>
+  <div class="section-sub">2026年4月 · 基于请款订单分析投放人业绩 · 请款/新增/APP数/渠道数/CPA</div>
+
+  <!-- 整体 KPI -->
+  <div class="kpi-grid kpi-grid-4" id="perfKPIGrid"></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">请款金额排行</div>
+      <ul class="rank-list" id="perfPaymentRank"></ul>
+    </div>
+    <div class="card">
+      <div class="card-title">新增数排行</div>
+      <ul class="rank-list" id="perfNewRank"></ul>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">投放人请款对比</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="perfPaymentChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">投放人 CPA 分布</div>
+      <div class="chart-wrap chart-h280">
+        <canvas id="perfCPAChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">投放人绩效明细</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>投放人</th><th>订单数</th><th>请款金额</th><th>扣量后新增</th><th>总充值</th>
+            <th>CPA</th><th>回收率</th><th>APP数</th><th>渠道数</th><th>绩效评级</th>
+          </tr>
+        </thead>
+        <tbody id="perfTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">投放人负责 APP 分布</div>
+    <div class="chart-wrap chart-h320">
+      <canvas id="perfHeatChart"></canvas>
     </div>
   </div>
 </div>
@@ -1050,59 +1230,63 @@ setInterval(updateRealTime, 1000);
 document.getElementById('sidebarUpdateTime').textContent = lastUpdated;
 
 // NAV
+const pageTitles = {
+  overview:'项目概览', product:'产品投放', budget:'预算与支出', team:'人员与分工', review:'月度复盘',
+  daily3:'每日明细', dailyexp:'每日支出', orders:'订单流水', coop:'合作方式分析', perf:'投放人绩效'
+};
+
 function switchPage(id, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.nav-sub').forEach(s => s.classList.remove('open'));
   document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  el.classList.add('active');
-  const titles = { overview:'项目概览', product:'产品投放', budget:'预算与支出', team:'人员与分工', review:'月度复盘', daily3:'每日明细', dailyexp:'每日支出' };
-  document.getElementById('topbarTitle').textContent = titles[id] || '';
-  if (id === 'product' || id === 'daily3') {
+  if (el) el.classList.add('active');
+  document.getElementById('topbarTitle').textContent = pageTitles[id] || '';
+
+  // 保持子导航展开并高亮
+  if (['product','daily3'].includes(id)) {
     document.getElementById('navSubProduct').classList.add('open');
-    document.querySelector('#navSubProduct .nav-sub-item' + (id === 'daily3' ? ':nth-child(2)' : ':nth-child(1)')).classList.add('active');
+    const idx = id==='daily3' ? 2 : 1;
+    document.querySelector(`#navSubProduct .nav-sub-item:nth-child(${idx})`).classList.add('active');
+    document.querySelectorAll('.nav-item')[1].classList.add('active');
   }
-  if (id === 'budget' || id === 'dailyexp') {
+  if (['budget','dailyexp','orders','coop'].includes(id)) {
     document.getElementById('navSubBudget').classList.add('open');
-    document.querySelector('#navSubBudget .nav-sub-item' + (id === 'dailyexp' ? ':nth-child(2)' : ':nth-child(1)')).classList.add('active');
+    const idx = {budget:1, dailyexp:2, orders:3, coop:4}[id];
+    document.querySelector(`#navSubBudget .nav-sub-item:nth-child(${idx})`).classList.add('active');
+    document.querySelectorAll('.nav-item')[2].classList.add('active');
   }
+  if (['team','perf'].includes(id)) {
+    document.getElementById('navSubTeam').classList.add('open');
+    const idx = id==='perf' ? 2 : 1;
+    document.querySelector(`#navSubTeam .nav-sub-item:nth-child(${idx})`).classList.add('active');
+    document.querySelectorAll('.nav-item')[3].classList.add('active');
+  }
+
   if (id === 'product' && !window._productDone) renderProduct();
   if (id === 'budget'  && !window._budgetDone)  renderBudget();
   if (id === 'daily3'  && !window._daily3Done)  { initDaily3Select(); renderDaily3(); }
   if (id === 'dailyexp' && !window._dailyExpDone) { initDailyExpSelect(); renderDailyExp(); }
+  if (id === 'orders' && !window._ordersDone)   { initOrdersFilters(); renderOrders(); }
+  if (id === 'coop'   && !window._coopDone)     renderCoop();
+  if (id === 'perf'   && !window._perfDone)     renderPerf();
 }
 
-// 产品投放 - 子导航切换
+// 子导航切换
 function switchProductSub(sub, el) {
-  document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
-  if (sub === 'main') {
-    const navItem = document.querySelectorAll('.nav-item')[1];
-    switchPage('product', navItem);
-  } else if (sub === 'daily3') {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-daily3').classList.add('active');
-    document.getElementById('topbarTitle').textContent = '每日明细';
-    document.getElementById('navSubProduct').classList.add('open');
-    if (!window._daily3Done) { initDaily3Select(); renderDaily3(); }
-  }
+  if (sub === 'main') switchPage('product', document.querySelectorAll('.nav-item')[1]);
+  else if (sub === 'daily3') switchPage('daily3');
 }
-
-// 预算与支出 - 子导航切换
 function switchBudgetSub(sub, el) {
-  document.querySelectorAll('.nav-sub-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
-  if (sub === 'main') {
-    const navItem = document.querySelectorAll('.nav-item')[2];
-    switchPage('budget', navItem);
-  } else if (sub === 'dailyexp') {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-dailyexp').classList.add('active');
-    document.getElementById('topbarTitle').textContent = '每日支出';
-    document.getElementById('navSubBudget').classList.add('open');
-    if (!window._dailyExpDone) { initDailyExpSelect(); renderDailyExp(); }
-  }
+  if (sub === 'main') switchPage('budget', document.querySelectorAll('.nav-item')[2]);
+  else if (sub === 'dailyexp') switchPage('dailyexp');
+  else if (sub === 'orders') switchPage('orders');
+  else if (sub === 'coop') switchPage('coop');
+}
+function switchTeamSub(sub, el) {
+  if (sub === 'main') switchPage('team', document.querySelectorAll('.nav-item')[3]);
+  else if (sub === 'perf') switchPage('perf');
 }
 
 // CHART DEFAULTS
@@ -1635,6 +1819,414 @@ function renderDailyExp() {
       scales: {
         x: { title: { display: true, text: '当日新增', color: tickColor, font: { size: 10 } }, grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } },
         y: { title: { display: true, text: '当日消耗', color: tickColor, font: { size: 10 } }, grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  订单流水（方案A-1）                                        ║
+// ╚════════════════════════════════════════════════════════════╝
+// orders 数组字段索引
+const O = { DATE:0, APP:1, TYPE:2, CHANNEL:3, OP:4, COOP:5, REQ:6, NEW:7, RECHARGE:8, PAY:9 };
+let ordersDateChart = null, ordersAppChart = null;
+
+function initOrdersFilters() {
+  const unique = (idx) => [...new Set(orders.map(o => o[idx]).filter(Boolean))].sort();
+  const fill = (id, arr) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">全部</option>' + arr.map(v => `<option value="${v}">${v}</option>`).join('');
+  };
+  fill('filterApp', unique(O.APP));
+  fill('filterOp', unique(O.OP));
+  fill('filterCoop', unique(O.COOP));
+  fill('filterReqType', unique(O.REQ));
+  // 日期排序：按真实日期
+  const dates = unique(O.DATE).sort((a,b) => new Date(a) - new Date(b));
+  fill('filterDate', dates);
+}
+
+function renderOrders() {
+  window._ordersDone = true;
+  const f = {
+    app: document.getElementById('filterApp').value,
+    op:  document.getElementById('filterOp').value,
+    coop:document.getElementById('filterCoop').value,
+    req: document.getElementById('filterReqType').value,
+    date:document.getElementById('filterDate').value,
+  };
+  const filtered = orders.filter(o =>
+    (!f.app || o[O.APP] === f.app) &&
+    (!f.op  || o[O.OP]  === f.op) &&
+    (!f.coop || o[O.COOP] === f.coop) &&
+    (!f.req || o[O.REQ] === f.req) &&
+    (!f.date || o[O.DATE] === f.date)
+  );
+
+  // 汇总 stat row
+  const totalCount = filtered.length;
+  const totalPay = filtered.reduce((s, o) => s + o[O.PAY], 0);
+  const totalNew = filtered.reduce((s, o) => s + o[O.NEW], 0);
+  const totalRecharge = filtered.reduce((s, o) => s + o[O.RECHARGE], 0);
+  const avgPay = totalCount > 0 ? Math.round(totalPay / totalCount) : 0;
+  const roi = totalPay > 0 ? (totalRecharge / totalPay * 100).toFixed(1) : '0';
+  const cpa = totalNew > 0 ? (totalPay / totalNew).toFixed(2) : '—';
+
+  document.getElementById('ordersStatRow').innerHTML = `
+    <div class="stat-item"><div class="stat-label">订单数</div><div class="stat-value c-blue">${totalCount.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">总请款</div><div class="stat-value c-amber">¥${totalPay.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">总充值</div><div class="stat-value c-green">¥${totalRecharge.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">总新增</div><div class="stat-value c-gold">${totalNew.toLocaleString()}</div></div>
+    <div class="stat-item"><div class="stat-label">平均CPA</div><div class="stat-value c-blue">¥${cpa}</div></div>
+    <div class="stat-item"><div class="stat-label">回收率</div><div class="stat-value" style="color:${parseFloat(roi) >= 30 ? 'var(--green)' : parseFloat(roi) >= 15 ? 'var(--gold)' : 'var(--red)'}">${roi}%</div></div>
+  `;
+
+  // 表格（虚拟列表思路 - 限制显示200条，总数另外显示）
+  const tbody = document.getElementById('ordersTable');
+  const showLimit = Math.min(filtered.length, 200);
+  document.getElementById('ordersCount').textContent = `· 显示 ${showLimit} / ${filtered.length} 笔`;
+  tbody.innerHTML = filtered.slice(0, showLimit).map(o => {
+    return `<tr>
+      <td style="font-size:11px">${o[O.DATE]}</td>
+      <td style="font-size:11px">${o[O.APP]}</td>
+      <td style="text-align:center"><span class="badge ${o[O.TYPE]==='付费'?'badge-paid':'badge-free'}" style="font-size:9px">${o[O.TYPE]}</span></td>
+      <td style="font-size:10px;color:var(--text3);">${o[O.CHANNEL]}</td>
+      <td style="font-size:11px">${o[O.OP]}</td>
+      <td style="font-size:11px"><span class="badge badge-mid" style="font-size:9px">${o[O.COOP]}</span></td>
+      <td style="font-size:11px;color:var(--text2)">${o[O.REQ]||'—'}</td>
+      <td>${o[O.NEW].toLocaleString()}</td>
+      <td class="c-green">${o[O.RECHARGE].toLocaleString()}</td>
+      <td class="c-amber" style="font-weight:600">¥${o[O.PAY].toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  // 按日期聚合
+  const byDate = {};
+  filtered.forEach(o => {
+    if (!byDate[o[O.DATE]]) byDate[o[O.DATE]] = 0;
+    byDate[o[O.DATE]] += o[O.PAY];
+  });
+  const sortedDates = Object.keys(byDate).sort((a,b) => new Date(a) - new Date(b));
+
+  if (ordersDateChart) ordersDateChart.destroy();
+  ordersDateChart = new Chart(document.getElementById('ordersDateChart'), {
+    type: 'bar',
+    data: {
+      labels: sortedDates.map(d => d.replace('2026/', '')),
+      datasets: [{ data: sortedDates.map(d => byDate[d]), backgroundColor: 'rgba(245,166,35,0.7)', borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label:c=>` 请款 ¥${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
+    }
+  });
+
+  // 按 APP 聚合 TOP10
+  const byApp = {};
+  filtered.forEach(o => {
+    if (!byApp[o[O.APP]]) byApp[o[O.APP]] = 0;
+    byApp[o[O.APP]] += o[O.PAY];
+  });
+  const top10 = Object.entries(byApp).sort((a,b) => b[1]-a[1]).slice(0, 10);
+
+  if (ordersAppChart) ordersAppChart.destroy();
+  ordersAppChart = new Chart(document.getElementById('ordersAppChart'), {
+    type: 'bar',
+    data: {
+      labels: top10.map(x => x[0]),
+      datasets: [{ data: top10.map(x => x[1]), backgroundColor: 'rgba(74,144,226,0.7)', borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label:c=>` ¥${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } },
+        y: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 11 } }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  合作方式分析（方案A-2）                                     ║
+// ╚════════════════════════════════════════════════════════════╝
+function renderCoop() {
+  window._coopDone = true;
+
+  const coopColors = { 'CPT':'#4a90e2', 'CPA':'#3ecf8e', 'CPC':'#f5a623', 'CPS':'#9b59b6' };
+  const reqColors  = { '渠道续费':'#4a90e2', '新开预付':'#3ecf8e', '数据结算':'#f5a623', '结算停线':'#f25c7a', '':'#666' };
+
+  // 按合作方式聚合
+  const byCoop = {};
+  orders.forEach(o => {
+    const k = o[O.COOP] || '其他';
+    if (!byCoop[k]) byCoop[k] = { count:0, pay:0, newU:0 };
+    byCoop[k].count++;
+    byCoop[k].pay += o[O.PAY];
+    byCoop[k].newU += o[O.NEW];
+  });
+  const totalPay = Object.values(byCoop).reduce((s,x) => s+x.pay, 0);
+
+  // KPI 卡片
+  const coopKeys = Object.keys(byCoop).sort((a,b) => byCoop[b].pay - byCoop[a].pay);
+  document.getElementById('coopKPIGrid').innerHTML = coopKeys.slice(0,4).map(k => `
+    <div class="kpi-card" style="--kc:${coopColors[k]||'var(--gold)'}">
+      <div class="kpi-label">${k}</div>
+      <div class="kpi-val" style="color:${coopColors[k]||'var(--gold)'}">¥${(byCoop[k].pay/10000).toFixed(1)}万</div>
+      <div class="kpi-desc">订单 ${byCoop[k].count} 笔 · 占比 ${(byCoop[k].pay/totalPay*100).toFixed(1)}%</div>
+    </div>
+  `).join('');
+
+  // 合作方式饼图
+  new Chart(document.getElementById('coopPieChart'), {
+    type:'doughnut',
+    data: {
+      labels: coopKeys,
+      datasets:[{ data: coopKeys.map(k => byCoop[k].pay), backgroundColor: coopKeys.map(k => coopColors[k]||'#888'), borderColor: 'var(--bg)', borderWidth: 3 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      cutout:'55%',
+      plugins: { legend:{position:'right', labels:{ color:'#8892aa', font:defaultFont }}, tooltip:{ callbacks:{ label:c=>` ${c.label}: ¥${c.raw.toLocaleString()} (${(c.raw/totalPay*100).toFixed(1)}%)` } } },
+    }
+  });
+
+  // 合作方式表格
+  document.getElementById('coopTable').innerHTML = coopKeys.map(k => {
+    const d = byCoop[k];
+    const avg = d.count > 0 ? Math.round(d.pay / d.count) : 0;
+    return `<tr>
+      <td><span class="badge" style="background:${coopColors[k]}22;color:${coopColors[k]};border:1px solid ${coopColors[k]}55">${k}</span></td>
+      <td>${d.count}</td>
+      <td class="c-amber">¥${d.pay.toLocaleString()}</td>
+      <td>${(d.pay/totalPay*100).toFixed(1)}%</td>
+      <td>¥${avg.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  // 按请款类型
+  const byReq = {};
+  orders.forEach(o => {
+    const k = o[O.REQ] || '未填';
+    if (!byReq[k]) byReq[k] = { count:0, pay:0 };
+    byReq[k].count++;
+    byReq[k].pay += o[O.PAY];
+  });
+  const reqKeys = Object.keys(byReq).sort((a,b) => byReq[b].pay - byReq[a].pay);
+
+  new Chart(document.getElementById('reqTypePieChart'), {
+    type:'doughnut',
+    data: {
+      labels: reqKeys,
+      datasets:[{ data: reqKeys.map(k => byReq[k].pay), backgroundColor: reqKeys.map(k => reqColors[k]||'#888'), borderColor: 'var(--bg)', borderWidth: 3 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      cutout:'55%',
+      plugins: { legend:{position:'right', labels:{ color:'#8892aa', font:defaultFont }}, tooltip:{ callbacks:{ label:c=>` ${c.label}: ¥${c.raw.toLocaleString()} (${(c.raw/totalPay*100).toFixed(1)}%)` } } },
+    }
+  });
+
+  document.getElementById('reqTypeTable').innerHTML = reqKeys.map(k => {
+    const d = byReq[k];
+    const avg = d.count > 0 ? Math.round(d.pay / d.count) : 0;
+    return `<tr>
+      <td><span class="badge" style="background:${reqColors[k]}22;color:${reqColors[k]};border:1px solid ${reqColors[k]}55">${k||'未填'}</span></td>
+      <td>${d.count}</td>
+      <td class="c-amber">¥${d.pay.toLocaleString()}</td>
+      <td>${(d.pay/totalPay*100).toFixed(1)}%</td>
+      <td>¥${avg.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  // 合作方式 × APP 堆叠柱状图（TOP10 APP）
+  const appPay = {};
+  orders.forEach(o => {
+    if (!appPay[o[O.APP]]) appPay[o[O.APP]] = 0;
+    appPay[o[O.APP]] += o[O.PAY];
+  });
+  const top10Apps = Object.entries(appPay).sort((a,b) => b[1]-a[1]).slice(0, 10).map(x => x[0]);
+
+  const datasets = coopKeys.map(ck => ({
+    label: ck,
+    data: top10Apps.map(app => {
+      return orders.filter(o => o[O.APP]===app && o[O.COOP]===ck).reduce((s,o) => s+o[O.PAY], 0);
+    }),
+    backgroundColor: coopColors[ck] || '#888',
+    borderColor: 'var(--bg)', borderWidth: 1,
+    borderRadius: 3
+  }));
+
+  new Chart(document.getElementById('coopStackChart'), {
+    type: 'bar',
+    data: { labels: top10Apps, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{ labels:{ color:'#8892aa', font:defaultFont } }, tooltip:{ callbacks:{ label:c=>` ${c.dataset.label}: ¥${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { stacked:true, grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
+        y: { stacked:true, grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+// ╔════════════════════════════════════════════════════════════╗
+// ║  投放人绩效（方案B）                                         ║
+// ╚════════════════════════════════════════════════════════════╝
+function renderPerf() {
+  window._perfDone = true;
+
+  // 按投放人聚合
+  const byOp = {};
+  orders.forEach(o => {
+    const k = o[O.OP] || '未知';
+    if (!byOp[k]) byOp[k] = { count:0, pay:0, newU:0, recharge:0, apps:new Set(), channels:new Set() };
+    byOp[k].count++;
+    byOp[k].pay += o[O.PAY];
+    byOp[k].newU += o[O.NEW];
+    byOp[k].recharge += o[O.RECHARGE];
+    byOp[k].apps.add(o[O.APP]);
+    byOp[k].channels.add(o[O.CHANNEL]);
+  });
+
+  const sorted = Object.entries(byOp).sort((a,b) => b[1].pay - a[1].pay);
+  const totalPay = sorted.reduce((s, [_, d]) => s + d.pay, 0);
+
+  // KPI 整体
+  document.getElementById('perfKPIGrid').innerHTML = `
+    <div class="kpi-card" style="--kc:var(--gold)">
+      <div class="kpi-label">投放人数</div>
+      <div class="kpi-val">${sorted.length}</div>
+      <div class="kpi-desc">处理 ${orders.length} 笔订单</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--amber)">
+      <div class="kpi-label">总请款</div>
+      <div class="kpi-val">¥${(totalPay/10000).toFixed(1)}万</div>
+      <div class="kpi-desc">人均 ¥${(totalPay/sorted.length/10000).toFixed(1)}万</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--blue)">
+      <div class="kpi-label">TOP1 投放人</div>
+      <div class="kpi-val" style="font-size:22px;padding-top:4px">${sorted[0][0]}</div>
+      <div class="kpi-desc">¥${(sorted[0][1].pay/10000).toFixed(1)}万 · ${(sorted[0][1].pay/totalPay*100).toFixed(1)}%</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--green)">
+      <div class="kpi-label">TOP1 新增</div>
+      <div class="kpi-val" style="font-size:22px;padding-top:4px">${[...sorted].sort((a,b) => b[1].newU - a[1].newU)[0][0]}</div>
+      <div class="kpi-desc">新增 ${[...sorted].sort((a,b) => b[1].newU - a[1].newU)[0][1].newU.toLocaleString()}</div>
+    </div>
+  `;
+
+  // 请款排行
+  const rankPayEl = document.getElementById('perfPaymentRank');
+  rankPayEl.innerHTML = sorted.map(([name, d], i) => {
+    const pct = (d.pay / sorted[0][1].pay * 100).toFixed(0);
+    return `<li class="rank-item">
+      <span class="rank-num ${i<3?'top':''}">${i+1}</span>
+      <span class="rank-name">${name}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:var(--amber)"></div></div>
+      <span class="rank-val c-amber">¥${(d.pay/10000).toFixed(1)}万</span>
+    </li>`;
+  }).join('');
+
+  // 新增排行
+  const sortedByNew = [...sorted].sort((a,b) => b[1].newU - a[1].newU);
+  const maxNew = sortedByNew[0][1].newU;
+  document.getElementById('perfNewRank').innerHTML = sortedByNew.map(([name, d], i) => {
+    const pct = maxNew > 0 ? (d.newU / maxNew * 100).toFixed(0) : 0;
+    return `<li class="rank-item">
+      <span class="rank-num ${i<3?'top':''}">${i+1}</span>
+      <span class="rank-name">${name}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:var(--green)"></div></div>
+      <span class="rank-val c-green">${d.newU.toLocaleString()}</span>
+    </li>`;
+  }).join('');
+
+  // 投放人请款柱状图
+  new Chart(document.getElementById('perfPaymentChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(x => x[0]),
+      datasets: [{ data: sorted.map(x => x[1].pay), backgroundColor: 'rgba(245,166,35,0.7)', borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label:c=>` 请款 ¥${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
+      }
+    }
+  });
+
+  // CPA 分布
+  const cpaData = sorted.map(([name, d]) => ({ name, cpa: d.newU > 0 ? d.pay / d.newU : 0 })).filter(x => x.cpa > 0 && x.cpa < 10000);
+  new Chart(document.getElementById('perfCPAChart'), {
+    type: 'bar',
+    data: {
+      labels: cpaData.map(x => x.name),
+      datasets: [{ data: cpaData.map(x => x.cpa.toFixed(2)), backgroundColor: cpaData.map(x => x.cpa <= 50 ? 'rgba(62,207,142,0.7)' : x.cpa <= 200 ? 'rgba(201,168,76,0.7)' : 'rgba(242,92,122,0.7)'), borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label:c=>` CPA ¥${c.raw}` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
+        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => '¥'+v }, border: { color: 'transparent' } }
+      }
+    }
+  });
+
+  // 明细表
+  document.getElementById('perfTable').innerHTML = sorted.map(([name, d]) => {
+    const cpa = d.newU > 0 ? (d.pay / d.newU).toFixed(2) : '—';
+    const recRate = d.pay > 0 ? (d.recharge / d.pay * 100).toFixed(1) : '0';
+    let rate, rateClass;
+    const score = (d.pay / totalPay * 100);
+    if (score >= 15) { rate = 'S'; rateClass = 'c-green'; }
+    else if (score >= 8) { rate = 'A'; rateClass = 'c-gold'; }
+    else if (score >= 3) { rate = 'B'; rateClass = 'c-blue'; }
+    else { rate = 'C'; rateClass = 'c-muted'; }
+
+    return `<tr>
+      <td style="font-weight:600">${name}</td>
+      <td>${d.count}</td>
+      <td class="c-amber">¥${d.pay.toLocaleString()}</td>
+      <td class="c-green">${d.newU.toLocaleString()}</td>
+      <td class="c-blue">¥${d.recharge.toLocaleString()}</td>
+      <td>¥${cpa}</td>
+      <td style="color:${parseFloat(recRate) >= 30 ? 'var(--green)' : parseFloat(recRate) >= 15 ? 'var(--gold)' : 'var(--red)'}">${recRate}%</td>
+      <td>${d.apps.size}</td>
+      <td>${d.channels.size}</td>
+      <td class="${rateClass}" style="font-weight:700;font-size:14px;">${rate}</td>
+    </tr>`;
+  }).join('');
+
+  // APP 分布横向堆叠
+  const topOps = sorted.slice(0, 10).map(x => x[0]);
+  const topApps = Object.entries(orders.reduce((m, o) => { m[o[O.APP]] = (m[o[O.APP]]||0) + o[O.PAY]; return m; }, {})).sort((a,b) => b[1]-a[1]).slice(0, 8).map(x => x[0]);
+  const appColors = ['#4a90e2', '#3ecf8e', '#f5a623', '#c9a84c', '#9b59b6', '#f25c7a', '#5dade2', '#48c9b0'];
+
+  const appDatasets = topApps.map((app, i) => ({
+    label: app,
+    data: topOps.map(op => orders.filter(o => o[O.OP]===op && o[O.APP]===app).reduce((s, o) => s + o[O.PAY], 0)),
+    backgroundColor: appColors[i],
+    borderColor: 'var(--bg)', borderWidth: 1, borderRadius: 2
+  }));
+
+  new Chart(document.getElementById('perfHeatChart'), {
+    type:'bar',
+    data: { labels: topOps, datasets: appDatasets },
+    options: {
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{ labels:{ color:'#8892aa', font:defaultFont } }, tooltip:{ callbacks:{ label:c=>` ${c.dataset.label}: ¥${c.raw.toLocaleString()}` } } },
+      scales: {
+        x: { stacked:true, grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } },
+        y: { stacked:true, grid: { display: false }, ticks: { color: '#8892aa', font: { size: 11 } }, border: { color: 'transparent' } }
       }
     }
   });
