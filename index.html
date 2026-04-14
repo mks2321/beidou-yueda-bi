@@ -1452,7 +1452,7 @@ let d3Chart = null, d3CPAChart = null, d3BarChart = null, d3CumChart = null;
 
 function initDaily3Select() {
   const sel = document.getElementById('daily3ProductSelect');
-  sel.innerHTML = products.map(p =>
+  sel.innerHTML = '<option value="__ALL__">全部产品（合计）</option>' + products.map(p =>
     `<option value="${p.name}">${p.name}（${p.type}）</option>`
   ).join('');
   // 日期下拉
@@ -1461,6 +1461,19 @@ function initDaily3Select() {
   const optsEnd = '<option value="">全部</option>' + allDates.map(d => `<option value="${d}">${d}</option>`).join('');
   document.getElementById('daily3DateStart').innerHTML = optsStart;
   document.getElementById('daily3DateEnd').innerHTML = optsEnd;
+}
+
+// 把多个产品的 days 数据按日期聚合
+function aggregateDays(productNames) {
+  const map = {};
+  productNames.forEach(name => {
+    (dailyData[name] || []).forEach(([date, n, c]) => {
+      if (!map[date]) map[date] = [0, 0];
+      map[date][0] += n;
+      map[date][1] += c;
+    });
+  });
+  return Object.keys(map).sort().map(d => [d, map[d][0], map[d][1]]);
 }
 
 function resetDaily3Dates() {
@@ -1473,8 +1486,29 @@ function renderDaily3() {
   window._daily3Done = true;
   const sel = document.getElementById('daily3ProductSelect');
   const name = sel.value;
-  const prod = products.find(p => p.name === name);
-  let days = dailyData[name] || [];
+  const isAll = name === '__ALL__';
+
+  // "全部产品" 时聚合所有产品数据并构造虚拟产品
+  let prod, days;
+  if (isAll) {
+    days = aggregateDays(products.map(p => p.name));
+    const totalTarget = products.reduce((s,p) => s + p.target, 0);
+    const totalBudget = products.reduce((s,p) => s + p.budget, 0);
+    const totalAllNew = products.reduce((s,p) => s + p.total, 0);
+    const totalAllConsume = products.reduce((s,p) => s + p.consume, 0);
+    prod = {
+      name: '全部产品',
+      target: totalTarget,
+      budget: totalBudget,
+      total: totalAllNew,
+      consume: totalAllConsume,
+      completion: totalTarget > 0 ? +(totalAllNew / totalTarget * 100).toFixed(2) : 0,
+      consumeRate: totalBudget > 0 ? +(totalAllConsume / totalBudget * 100).toFixed(2) : 0,
+    };
+  } else {
+    prod = products.find(p => p.name === name);
+    days = dailyData[name] || [];
+  }
 
   // 日期范围筛选
   const dStart = document.getElementById('daily3DateStart').value;
@@ -1623,7 +1657,7 @@ let deTrendChart = null, deCumChart = null, deBarChart = null, deScatterChart = 
 
 function initDailyExpSelect() {
   const sel = document.getElementById('dailyExpProductSelect');
-  sel.innerHTML = products.map(p =>
+  sel.innerHTML = '<option value="__ALL__">全部产品（合计）</option>' + products.map(p =>
     `<option value="${p.name}">${p.name}（${p.type}）</option>`
   ).join('');
   // 日期下拉
@@ -1644,8 +1678,26 @@ function renderDailyExp() {
   window._dailyExpDone = true;
   const sel = document.getElementById('dailyExpProductSelect');
   const name = sel.value;
-  const prod = products.find(p => p.name === name);
-  let days = dailyData[name] || [];
+  const isAll = name === '__ALL__';
+
+  let prod, days;
+  if (isAll) {
+    days = aggregateDays(products.map(p => p.name));
+    const totalTarget = products.reduce((s,p) => s + p.target, 0);
+    const totalBudget = products.reduce((s,p) => s + p.budget, 0);
+    const totalAllNew = products.reduce((s,p) => s + p.total, 0);
+    const totalAllConsume = products.reduce((s,p) => s + p.consume, 0);
+    prod = {
+      name: '全部产品',
+      target: totalTarget, budget: totalBudget,
+      total: totalAllNew, consume: totalAllConsume,
+      completion: totalTarget > 0 ? +(totalAllNew / totalTarget * 100).toFixed(2) : 0,
+      consumeRate: totalBudget > 0 ? +(totalAllConsume / totalBudget * 100).toFixed(2) : 0,
+    };
+  } else {
+    prod = products.find(p => p.name === name);
+    days = dailyData[name] || [];
+  }
 
   // 日期范围筛选
   const dStart = document.getElementById('dailyExpDateStart').value;
