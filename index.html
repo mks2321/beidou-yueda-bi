@@ -559,6 +559,18 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   <div class="stat-row" id="daily3StatRow" style="margin-bottom:24px;">
   </div>
 
+  <div class="card">
+    <div class="card-title">每日数据明细</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>日期</th><th>当日新增</th><th>当日消耗</th><th>当日CPA</th><th>累计新增</th><th>累计消耗</th><th>累计CPA</th><th>目标进度</th></tr>
+        </thead>
+        <tbody id="daily3Table"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="grid-2">
     <div class="card">
       <div class="card-title">新增 & 消耗趋势</div>
@@ -586,18 +598,6 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
       <div class="chart-wrap chart-h240">
         <canvas id="daily3CumChart"></canvas>
       </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">每日数据明细</div>
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr><th>日期</th><th>当日新增</th><th>当日消耗</th><th>当日CPA</th><th>累计新增</th><th>累计消耗</th><th>累计CPA</th><th>目标进度</th></tr>
-        </thead>
-        <tbody id="daily3Table"></tbody>
-      </table>
     </div>
   </div>
 </div>
@@ -760,6 +760,18 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     <div id="dailyExpProgress"></div>
   </div>
 
+  <div class="card">
+    <div class="card-title">每日支出明细</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>日期</th><th>当日消耗</th><th>当日新增</th><th>当日CPA</th><th>累计消耗</th><th>消耗占比</th><th>剩余预算</th><th>消耗进度</th></tr>
+        </thead>
+        <tbody id="dailyExpTable"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="grid-2">
     <div class="card">
       <div class="card-title">每日消耗趋势</div>
@@ -787,18 +799,6 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
       <div class="chart-wrap chart-h240">
         <canvas id="dailyExpScatterChart"></canvas>
       </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">每日支出明细</div>
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr><th>日期</th><th>当日消耗</th><th>当日新增</th><th>当日CPA</th><th>累计消耗</th><th>消耗占比</th><th>剩余预算</th><th>消耗进度</th></tr>
-        </thead>
-        <tbody id="dailyExpTable"></tbody>
-      </table>
     </div>
   </div>
 </div>
