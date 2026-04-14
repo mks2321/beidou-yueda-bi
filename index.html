@@ -265,32 +265,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 .tl-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
 .tl-desc { font-size:12px; color:var(--text2); line-height:1.7; }
 
-/* 方案二：展开行 */
-.expand-row { cursor:pointer; }
-.expand-row:hover { background:rgba(201,168,76,0.06) !important; }
-.expand-row td:first-child::before {
-  content:'▶'; display:inline-block; margin-right:6px; font-size:9px; color:var(--text3);
-  transition:transform 0.2s;
-}
-.expand-row.open td:first-child::before { transform:rotate(90deg); color:var(--gold); }
-.expand-detail { display:none; }
-.expand-detail.open { display:table-row; }
-.expand-detail td {
-  padding:0 !important; text-align:left !important;
-}
-.expand-inner {
-  padding:16px 20px 20px;
-  background:var(--surface2); border-radius:0 0 8px 8px;
-  margin:0 8px 8px; border:1px solid var(--border); border-top:none;
-}
-.expand-inner .mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px; }
-.expand-inner .mini-kpi { display:flex; gap:12px; margin-bottom:14px; }
-.expand-inner .mini-kpi-item {
-  padding:8px 14px; border-radius:8px; background:rgba(255,255,255,0.03);
-  border:1px solid var(--border); text-align:center; flex:1;
-}
-
-/* 方案三：子导航 */
+/* 子导航 */
 .nav-sub {
   padding-left:44px; margin-top:2px;
   display:none; flex-direction:column; gap:2px;
@@ -302,15 +277,6 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 }
 .nav-sub-item:hover { color:var(--text2); background:var(--surface2); }
 .nav-sub-item.active { color:var(--gold); background:var(--gold-l); }
-
-/* 方案标签 */
-.scheme-tag {
-  display:inline-block; font-size:9px; font-weight:700; letter-spacing:0.1em;
-  padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;
-}
-.scheme-tag.s1 { background:rgba(74,144,226,0.15); color:var(--blue); }
-.scheme-tag.s2 { background:rgba(62,207,142,0.15); color:var(--green); }
-.scheme-tag.s3 { background:rgba(155,89,182,0.15); color:var(--purple); }
 </style>
 </head>
 <body>
@@ -335,7 +301,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     </div>
     <div class="nav-sub" id="navSubProduct">
       <div class="nav-sub-item active" onclick="switchProductSub('main',this)">投放台账</div>
-      <div class="nav-sub-item" onclick="switchProductSub('daily3',this)">每日明细 <span class="scheme-tag s3" style="margin-left:4px">方案三</span></div>
+      <div class="nav-sub-item" onclick="switchProductSub('daily3',this)">每日明细</div>
     </div>
     <div class="nav-item" onclick="switchPage('budget',this)">
       <span class="nav-icon">&#128176;</span>
@@ -532,8 +498,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   </div>
 
   <div class="card">
-    <div class="card-title">产品投放明细 <span class="scheme-tag s2">方案二：点击行展开每日明细</span></div>
-    <div style="font-size:11px;color:var(--text3);margin:-12px 0 16px 14px;">点击任意产品行，展开查看该产品每日新增/消耗/CPA明细</div>
+    <div class="card-title">产品投放明细</div>
     <div class="tbl-wrap">
       <table>
         <thead>
@@ -544,49 +509,11 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     </div>
   </div>
 
-  <!-- 每日明细 -->
-  <div class="card">
-    <div class="card-title">每日明细 <span class="scheme-tag s1">方案一：下拉选择产品</span></div>
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:12px;color:var(--text2);">选择产品</span>
-        <select id="dailyProductSelect" onchange="renderDaily()" style="
-          background:var(--surface2);border:1px solid var(--border);color:var(--text);
-          padding:8px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;
-          cursor:pointer;outline:none;min-width:180px;
-        ">
-        </select>
-      </div>
-      <div id="dailyKPIs" style="display:flex;gap:12px;flex:1;justify-content:flex-end;"></div>
-    </div>
-    <div class="grid-2">
-      <div>
-        <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;">新增 & 消耗趋势</div>
-        <div class="chart-wrap chart-h240">
-          <canvas id="dailyChart"></canvas>
-        </div>
-      </div>
-      <div>
-        <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;">CPA 趋势</div>
-        <div class="chart-wrap chart-h240">
-          <canvas id="dailyCPAChart"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="tbl-wrap" style="margin-top:16px;">
-      <table>
-        <thead>
-          <tr><th>日期</th><th>当日新增</th><th>当日消耗</th><th>当日CPA</th><th>累计新增</th><th>累计消耗</th><th>目标进度</th></tr>
-        </thead>
-        <tbody id="dailyTable"></tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
 <!-- ═══ PAGE 2B: 每日明细（方案三独立页） ═══ -->
 <div class="page" id="page-daily3">
-  <div class="section-title">每日明细 <span class="scheme-tag s3" style="font-size:11px;padding:3px 8px;">方案三：独立子页签</span></div>
+  <div class="section-title">每日明细</div>
   <div class="section-sub">2026年4月 · 产品每日投放数据追踪 · 从侧边栏「产品投放 → 每日明细」进入</div>
 
   <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
@@ -1061,7 +988,7 @@ function switchPage(id, el) {
   if (id === 'product' || id === 'daily3') {
     document.getElementById('navSubProduct').classList.add('open');
   }
-  if (id === 'product' && !window._productDone) { renderProduct(); renderDaily(); }
+  if (id === 'product' && !window._productDone) renderProduct();
   if (id === 'budget'  && !window._budgetDone)  renderBudget();
   if (id === 'daily3'  && !window._daily3Done)  { initDaily3Select(); renderDaily3(); }
 }
@@ -1144,10 +1071,8 @@ function renderProduct() {
   });
 
   const tbody = document.getElementById('productTable');
-  products.forEach((d, idx) => {
-    const days = dailyData[d.name] || [];
-    // 主行 - 方案二可点击
-    tbody.innerHTML += `<tr class="expand-row" onclick="toggleExpand(${idx},this)">
+  products.forEach(d => {
+    tbody.innerHTML += `<tr>
       <td style="font-weight:500">${d.name}</td>
       <td style="text-align:center"><span class="badge ${d.type==='付费'?'badge-paid':'badge-free'}">${d.type}</span></td>
       <td>${d.target.toLocaleString()}</td>
@@ -1158,64 +1083,7 @@ function renderProduct() {
       <td><span style="color:${consumeColor(d.consumeRate)}">${d.consumeRate}%</span></td>
       <td style="color:var(--text2)">${d.cpa.toFixed(2)}</td>
     </tr>`;
-
-    // 展开行 - 每日明细
-    let dayRows = '';
-    if (days.length) {
-      let cn = 0, cc = 0;
-      dayRows = days.map(day => {
-        cn += day[1]; cc += day[2];
-        const cpav = day[1] > 0 ? (day[2]/day[1]).toFixed(2) : '—';
-        return `<tr style="font-size:11px;">
-          <td style="text-align:center;color:var(--text2);padding:6px 10px;">${day[0]}</td>
-          <td style="text-align:right;padding:6px 10px;" class="c-blue">${day[1].toLocaleString()}</td>
-          <td style="text-align:right;padding:6px 10px;" class="c-amber">${day[2].toLocaleString()}</td>
-          <td style="text-align:right;padding:6px 10px;" class="c-gold">¥${cpav}</td>
-          <td style="text-align:right;padding:6px 10px;">${cn.toLocaleString()}</td>
-          <td style="text-align:right;padding:6px 10px;">${cc.toLocaleString()}</td>
-        </tr>`;
-      }).join('');
-    } else {
-      dayRows = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:12px;font-size:12px;">暂无每日数据</td></tr>';
-    }
-
-    tbody.innerHTML += `<tr class="expand-detail" id="expand-${idx}">
-      <td colspan="9">
-        <div class="expand-inner">
-          <div style="font-size:12px;color:var(--text2);margin-bottom:10px;font-weight:600;">
-            ${d.name} · 每日明细
-          </div>
-          <table style="width:100%;">
-            <thead>
-              <tr>
-                <th style="text-align:center;font-size:10px;">日期</th>
-                <th style="font-size:10px;">当日新增</th>
-                <th style="font-size:10px;">当日消耗</th>
-                <th style="font-size:10px;">当日CPA</th>
-                <th style="font-size:10px;">累计新增</th>
-                <th style="font-size:10px;">累计消耗</th>
-              </tr>
-            </thead>
-            <tbody>${dayRows}</tbody>
-          </table>
-        </div>
-      </td>
-    </tr>`;
   });
-}
-
-// 方案二：展开/收起
-function toggleExpand(idx, row) {
-  const detail = document.getElementById('expand-' + idx);
-  const isOpen = detail.classList.contains('open');
-  // 关闭所有
-  document.querySelectorAll('.expand-detail').forEach(d => d.classList.remove('open'));
-  document.querySelectorAll('.expand-row').forEach(r => r.classList.remove('open'));
-  // 如果之前没开，则打开
-  if (!isOpen) {
-    detail.classList.add('open');
-    row.classList.add('open');
-  }
 }
 
 // BUDGET
@@ -1313,125 +1181,7 @@ const dailyData = {
   'pornhub免费版': [["04-01", 11425, 19870], ["04-02", 12124, 45], ["04-03", 16623, 63105], ["04-04", 20789, 1250], ["04-05", 19560, 0], ["04-06", 15163, 30085], ["04-07", 8937, 0], ["04-08", 7947, 46560], ["04-09", 9118, 8890], ["04-10", 12556, 1426], ["04-11", 17748, 2618], ["04-12", 15115, 0], ["04-13", 10636, 22302]],
 };
 
-// ── 每日明细渲染 ──
-let dailyChartInstance = null;
-let dailyCPAChartInstance = null;
-
-function initDailySelect() {
-  const sel = document.getElementById('dailyProductSelect');
-  sel.innerHTML = products.map(p =>
-    `<option value="${p.name}">${p.name}（${p.type}）</option>`
-  ).join('');
-}
-
-function renderDaily() {
-  const sel = document.getElementById('dailyProductSelect');
-  const name = sel.value;
-  const prod = products.find(p => p.name === name);
-  const days = dailyData[name] || [];
-
-  if (!days.length) {
-    document.getElementById('dailyKPIs').innerHTML = '<span style="font-size:12px;color:var(--text3);">暂无每日数据</span>';
-    document.getElementById('dailyTable').innerHTML = '';
-    return;
-  }
-
-  // 计算 KPI
-  const totalDayNew = days.reduce((s, d) => s + d[1], 0);
-  const totalDayCost = days.reduce((s, d) => s + d[2], 0);
-  const avgNew = Math.round(totalDayNew / days.length);
-  const avgCost = Math.round(totalDayCost / days.length);
-  const avgCPA = totalDayNew > 0 ? (totalDayCost / totalDayNew).toFixed(2) : '—';
-
-  document.getElementById('dailyKPIs').innerHTML = `
-    <div style="padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);text-align:center;">
-      <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;">日均新增</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--blue);">${avgNew.toLocaleString()}</div>
-    </div>
-    <div style="padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);text-align:center;">
-      <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;">日均消耗</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--amber);">${avgCost.toLocaleString()}</div>
-    </div>
-    <div style="padding:8px 16px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);text-align:center;">
-      <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;">日均CPA</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--gold);">¥${avgCPA}</div>
-    </div>
-  `;
-
-  // 表格
-  const tbody = document.getElementById('dailyTable');
-  let cumNew = 0, cumCost = 0;
-  tbody.innerHTML = days.map(d => {
-    cumNew += d[1];
-    cumCost += d[2];
-    const cpa = d[1] > 0 ? (d[2] / d[1]).toFixed(2) : '—';
-    const progress = prod ? (cumNew / prod.target * 100).toFixed(1) : '—';
-    const progColor = parseFloat(progress) >= 35 ? 'var(--green)' : parseFloat(progress) >= 25 ? 'var(--gold)' : 'var(--blue)';
-    return `<tr>
-      <td style="font-weight:500">${d[0]}</td>
-      <td class="c-blue">${d[1].toLocaleString()}</td>
-      <td class="c-amber">${d[2].toLocaleString()}</td>
-      <td class="c-gold">¥${cpa}</td>
-      <td>${cumNew.toLocaleString()}</td>
-      <td>${cumCost.toLocaleString()}</td>
-      <td><div class="prog-row"><div class="prog-bar"><div class="prog-fill ${parseFloat(progress)>=35?'prog-high':parseFloat(progress)>=25?'prog-med':'prog-low'}" style="width:${Math.min(parseFloat(progress),100)}%"></div></div><span class="prog-val" style="color:${progColor}">${progress}%</span></div></td>
-    </tr>`;
-  }).join('');
-
-  // 新增 & 消耗趋势图
-  if (dailyChartInstance) dailyChartInstance.destroy();
-  dailyChartInstance = new Chart(document.getElementById('dailyChart'), {
-    type: 'line',
-    data: {
-      labels: days.map(d => d[0]),
-      datasets: [
-        {
-          label: '当日新增', data: days.map(d => d[1]),
-          borderColor: 'rgba(74,144,226,0.9)', backgroundColor: 'rgba(74,144,226,0.1)',
-          fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: 'var(--blue)', borderWidth: 2,
-        },
-        {
-          label: '当日消耗', data: days.map(d => d[2]),
-          borderColor: 'rgba(245,166,35,0.9)', backgroundColor: 'rgba(245,166,35,0.1)',
-          fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: 'var(--amber)', borderWidth: 2,
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#8892aa', font: defaultFont } }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw.toLocaleString()}` } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => fmt(v) }, border: { color: 'transparent' } }
-      }
-    }
-  });
-
-  // CPA 趋势图
-  const cpas = days.map(d => d[1] > 0 ? +(d[2] / d[1]).toFixed(2) : 0);
-  if (dailyCPAChartInstance) dailyCPAChartInstance.destroy();
-  dailyCPAChartInstance = new Chart(document.getElementById('dailyCPAChart'), {
-    type: 'line',
-    data: {
-      labels: days.map(d => d[0]),
-      datasets: [{
-        label: 'CPA', data: cpas,
-        borderColor: 'rgba(201,168,76,0.9)', backgroundColor: 'rgba(201,168,76,0.1)',
-        fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: 'var(--gold)', borderWidth: 2,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` CPA: ¥${c.raw}` } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: '#8892aa', font: { size: 10 } }, border: { color: 'transparent' } },
-        y: { grid: { color: gridColor }, ticks: { color: tickColor, font: defaultFont, callback: v => '¥' + v }, border: { color: 'transparent' } }
-      }
-    }
-  });
-}
-
-// ── 方案三：独立页面渲染 ──
+// ── 每日明细（独立子页）──
 let d3Chart = null, d3CPAChart = null, d3BarChart = null, d3CumChart = null;
 
 function initDaily3Select() {
@@ -1586,7 +1336,6 @@ function renderDaily3() {
 
 // Init
 renderOverview();
-initDailySelect();
 </script>
 </body>
 </html>
