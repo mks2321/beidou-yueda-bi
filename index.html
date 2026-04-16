@@ -641,7 +641,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
       <div style="position:relative;width:180px;height:180px;margin:0 auto">
         <canvas id="totalConsumeDonut"></canvas>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--gold)">32.17%</div>
+          <div id="bvDonutRate" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--gold)">32.17%</div>
           <div style="font-size:11px;color:var(--text3);margin-top:2px">已消耗</div>
         </div>
       </div>
@@ -649,27 +649,27 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:10px;background:var(--surface2);border:1px solid var(--border)">
           <div>
             <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">总预算</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--text)">12,120,000</div>
+            <div id="bvTotalBudget" style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--text)">12,120,000</div>
           </div>
           <div style="font-size:22px;opacity:0.3">&#128188;</div>
         </div>
         <div style="display:flex;gap:12px">
           <div style="flex:1;padding:14px 18px;border-radius:10px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2)">
             <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">已消耗</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--amber)">3,899,148</div>
+            <div id="bvTotalConsume" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--amber)">3,899,148</div>
           </div>
           <div style="flex:1;padding:14px 18px;border-radius:10px;background:rgba(62,207,142,0.08);border:1px solid rgba(62,207,142,0.2)">
             <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">剩余预算</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green)">8,220,852</div>
+            <div id="bvTotalRemain" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green)">8,220,852</div>
           </div>
         </div>
         <div>
           <div style="display:flex;justify-content:space-between;margin-bottom:6px">
             <span style="font-size:12px;color:var(--text2)">预算使用进度</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold)">32.17% / 100%</span>
+            <span id="bvProgressLabel" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold)">32.17% / 100%</span>
           </div>
           <div style="height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden">
-            <div style="width:32.17%;height:100%;background:linear-gradient(90deg,var(--amber),var(--gold));border-radius:4px;transition:width 1s ease"></div>
+            <div id="bvProgressBar" style="width:32.17%;height:100%;background:linear-gradient(90deg,var(--amber),var(--gold));border-radius:4px;transition:width 1s ease"></div>
           </div>
           <div style="display:flex;justify-content:space-between;margin-top:5px">
             <span style="font-size:10px;color:var(--text3)">0%</span>
@@ -682,12 +682,12 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   </div>
 
   <div class="stat-row">
-    <div class="stat-item"><div class="stat-label">付费预算</div><div class="stat-value c-blue">9,620,000</div></div>
-    <div class="stat-item"><div class="stat-label">付费已消耗</div><div class="stat-value c-amber">3,195,299</div></div>
-    <div class="stat-item"><div class="stat-label">付费消耗率</div><div class="stat-value c-gold">33.22%</div></div>
-    <div class="stat-item"><div class="stat-label">免费预算</div><div class="stat-value c-green">2,500,000</div></div>
-    <div class="stat-item"><div class="stat-label">免费已消耗</div><div class="stat-value c-amber">703,849</div></div>
-    <div class="stat-item"><div class="stat-label">免费消耗率</div><div class="stat-value c-gold">28.15%</div></div>
+    <div class="stat-item"><div class="stat-label">付费预算</div><div id="bvPaidBudget" class="stat-value c-blue">9,620,000</div></div>
+    <div class="stat-item"><div class="stat-label">付费已消耗</div><div id="bvPaidConsume" class="stat-value c-amber">3,195,299</div></div>
+    <div class="stat-item"><div class="stat-label">付费消耗率</div><div id="bvPaidRate" class="stat-value c-gold">33.22%</div></div>
+    <div class="stat-item"><div class="stat-label">免费预算</div><div id="bvFreeBudget" class="stat-value c-green">2,500,000</div></div>
+    <div class="stat-item"><div class="stat-label">免费已消耗</div><div id="bvFreeConsume" class="stat-value c-amber">703,849</div></div>
+    <div class="stat-item"><div class="stat-label">免费消耗率</div><div id="bvFreeRate" class="stat-value c-gold">28.15%</div></div>
   </div>
 
   <div class="grid-2">
@@ -1226,53 +1226,7 @@ setInterval(updateRealTime, 1000);
 // 侧边栏：显示数据最后更新时间
 document.getElementById('sidebarUpdateTime').textContent = lastUpdated;
 
-// 自动计算并刷新 KPI 卡片（产品投放页 + 预算与支出页）
-(function refreshKPIs() {
-  const paid = products.filter(p => p.type === '付费');
-  const free = products.filter(p => p.type === '免费');
-  const sum = (arr, key) => arr.reduce((s, p) => s + (p[key] || 0), 0);
-  const w = n => (n / 10000).toFixed(2) + '万';
-  const wRound = n => Math.round(n / 10000) + '万';
-
-  // —— 产品投放页 ——
-  const paidNew = sum(paid, 'total');
-  const freeNew = sum(free, 'total');
-  document.getElementById('kpiPaidCount').textContent = paid.length;
-  document.getElementById('kpiFreeCount').textContent = free.length;
-  document.getElementById('kpiPaidNew').textContent = paidNew.toLocaleString();
-  document.getElementById('kpiFreeNew').textContent = freeNew.toLocaleString();
-
-  const sortedByRate = [...products].filter(p => p.completion > 0).sort((a, b) => b.completion - a.completion);
-  if (sortedByRate.length) {
-    const top = sortedByRate[0], bot = sortedByRate[sortedByRate.length - 1];
-    document.getElementById('kpiMaxRate').textContent = top.completion.toFixed(1) + '%';
-    document.getElementById('kpiMaxRateName').textContent = top.name;
-    document.getElementById('kpiMinRate').textContent = bot.completion.toFixed(1) + '%';
-    document.getElementById('kpiMinRateName').textContent = bot.name;
-  }
-
-  // —— 预算与支出页 ——
-  const paidBudget = sum(paid, 'budget'), freeBudget = sum(free, 'budget');
-  const totalBudget = paidBudget + freeBudget;
-  const paidConsume = sum(paid, 'consume'), freeConsume = sum(free, 'consume');
-  const totalConsume = paidConsume + freeConsume;
-  const remain = totalBudget - totalConsume;
-  const consumeRate = totalBudget > 0 ? (totalConsume / totalBudget * 100) : 0;
-
-  document.getElementById('kpiBudgetTotal').textContent = wRound(totalBudget);
-  document.getElementById('kpiBudgetSplit').textContent = `付费${wRound(paidBudget)} · 免费${wRound(freeBudget)}`;
-  document.getElementById('kpiConsumeTotal').textContent = w(totalConsume);
-  document.getElementById('kpiConsumeSplit').textContent = `付费${w(paidConsume)} · 免费${w(freeConsume)}`;
-  document.getElementById('kpiRemainTotal').textContent = w(remain);
-  document.getElementById('kpiRemainRate').textContent = `消耗率 ${consumeRate.toFixed(2)}%`;
-
-  const sortedByConsume = [...products].filter(p => p.consumeRate > 0).sort((a, b) => b.consumeRate - a.consumeRate);
-  if (sortedByConsume.length) {
-    const top = sortedByConsume[0];
-    document.getElementById('kpiMaxConsumeRate').textContent = top.consumeRate.toFixed(1) + '%';
-    document.getElementById('kpiMaxConsumeName').textContent = top.consumeRate >= 80 ? `${top.name}（超支警告）` : top.name;
-  }
-})();
+// refreshKPIs 在 dailyData 定义后调用（见文件底部 dailyData 之后）
 
 // NAV
 const pageTitles = {
@@ -1404,11 +1358,21 @@ function renderProduct() {
 function renderBudget() {
   window._budgetDone = true;
 
+  // donut 数据基于 dailyData 实时计算（与 stat-row 一致）
+  const liveCons = p => {
+    const d = (typeof dailyData !== 'undefined') ? dailyData[p.name] : null;
+    return d ? d.reduce((s, x) => s + x[2], 0) : (p.consume || 0);
+  };
+  const totalBudgetVal = products.reduce((s, p) => s + p.budget, 0);
+  const totalConsumeVal = products.reduce((s, p) => s + liveCons(p), 0);
+  const consumeRatePct = totalBudgetVal > 0 ? (totalConsumeVal / totalBudgetVal * 100) : 0;
+  const remainPct = Math.max(0, 100 - consumeRatePct);
+
   new Chart(document.getElementById('totalConsumeDonut'), {
     type: 'doughnut',
     data: {
       datasets: [{
-        data: [32.17, 67.83],
+        data: [+consumeRatePct.toFixed(2), +remainPct.toFixed(2)],
         backgroundColor: ['rgba(201,168,76,0.85)', 'rgba(255,255,255,0.06)'],
         borderColor: ['var(--bg)', 'transparent'],
         borderWidth: 3, hoverOffset: 4,
@@ -1498,6 +1462,97 @@ const dailyData = {
   '91成人盒子[GA]': [["04-01", 235, 0], ["04-02", 254, 0], ["04-03", 268, 0], ["04-04", 328, 0], ["04-05", 298, 0], ["04-06", 266, 0], ["04-07", 235, 0], ["04-08", 199, 0], ["04-09", 255, 0], ["04-10", 252, 0], ["04-11", 252, 0], ["04-12", 250, 0], ["04-13", 220, 0], ["04-14", 199, 0], ["04-15", 227, 0]],
   'Xvideo免费版': [["04-01", 4251, 0], ["04-02", 5375, 0], ["04-03", 5201, 250], ["04-04", 4359, 0], ["04-05", 6059, 0], ["04-06", 6166, 0], ["04-07", 3758, 0], ["04-08", 3176, 11522], ["04-09", 3425, 0], ["04-10", 3071, 0], ["04-11", 3528, 904], ["04-12", 3014, 0], ["04-13", 2340, 0], ["04-14", 2045, 0], ["04-15", 1975, 7845]],
 };
+
+// 自动刷新各页 KPI（产品投放 / 预算与支出）
+// 累计新增/消耗优先取 dailyData（实时刷新），无 dailyData 时回退 products[]
+(function refreshKPIs() {
+  const paid = products.filter(p => p.type === '付费');
+  const free = products.filter(p => p.type === '免费');
+  const sum = (arr, key) => arr.reduce((s, p) => s + (p[key] || 0), 0);
+  const w = n => (n / 10000).toFixed(2) + '万';
+  const wRound = n => Math.round(n / 10000) + '万';
+
+  // 实时累计：dailyData 有就用，没有就回退 products[].total / consume
+  const liveTotal = p => {
+    const d = dailyData[p.name];
+    return d ? d.reduce((s, x) => s + x[1], 0) : (p.total || 0);
+  };
+  const liveConsume = p => {
+    const d = dailyData[p.name];
+    return d ? d.reduce((s, x) => s + x[2], 0) : (p.consume || 0);
+  };
+
+  // —— 产品投放页 ——
+  const paidNew = paid.reduce((s, p) => s + liveTotal(p), 0);
+  const freeNew = free.reduce((s, p) => s + liveTotal(p), 0);
+  document.getElementById('kpiPaidCount').textContent = paid.length;
+  document.getElementById('kpiFreeCount').textContent = free.length;
+  document.getElementById('kpiPaidNew').textContent = paidNew.toLocaleString();
+  document.getElementById('kpiFreeNew').textContent = freeNew.toLocaleString();
+
+  // 用 dailyData 重新计算每个产品的 completion 来排序
+  const liveProds = products.map(p => {
+    const t = liveTotal(p);
+    const c = liveConsume(p);
+    return {
+      ...p,
+      total: t,
+      consume: c,
+      completion: p.target > 0 ? (t / p.target * 100) : 0,
+      consumeRate: p.budget > 0 ? (c / p.budget * 100) : 0,
+    };
+  });
+  const sortedByRate = [...liveProds].filter(p => p.completion > 0).sort((a, b) => b.completion - a.completion);
+  if (sortedByRate.length) {
+    const top = sortedByRate[0], bot = sortedByRate[sortedByRate.length - 1];
+    document.getElementById('kpiMaxRate').textContent = top.completion.toFixed(1) + '%';
+    document.getElementById('kpiMaxRateName').textContent = top.name;
+    document.getElementById('kpiMinRate').textContent = bot.completion.toFixed(1) + '%';
+    document.getElementById('kpiMinRateName').textContent = bot.name;
+  }
+
+  // —— 预算与支出页 ——
+  const paidBudget = sum(paid, 'budget'), freeBudget = sum(free, 'budget');
+  const totalBudget = paidBudget + freeBudget;
+  const paidConsume = paid.reduce((s, p) => s + liveConsume(p), 0);
+  const freeConsume = free.reduce((s, p) => s + liveConsume(p), 0);
+  const totalConsume = paidConsume + freeConsume;
+  const remain = totalBudget - totalConsume;
+  const consumeRate = totalBudget > 0 ? (totalConsume / totalBudget * 100) : 0;
+  const paidRate = paidBudget > 0 ? (paidConsume / paidBudget * 100) : 0;
+  const freeRate = freeBudget > 0 ? (freeConsume / freeBudget * 100) : 0;
+
+  // KPI 卡片
+  document.getElementById('kpiBudgetTotal').textContent = wRound(totalBudget);
+  document.getElementById('kpiBudgetSplit').textContent = `付费${wRound(paidBudget)} · 免费${wRound(freeBudget)}`;
+  document.getElementById('kpiConsumeTotal').textContent = w(totalConsume);
+  document.getElementById('kpiConsumeSplit').textContent = `付费${w(paidConsume)} · 免费${w(freeConsume)}`;
+  document.getElementById('kpiRemainTotal').textContent = w(remain);
+  document.getElementById('kpiRemainRate').textContent = `消耗率 ${consumeRate.toFixed(2)}%`;
+
+  const sortedByConsume = [...liveProds].filter(p => p.consumeRate > 0).sort((a, b) => b.consumeRate - a.consumeRate);
+  if (sortedByConsume.length) {
+    const top = sortedByConsume[0];
+    document.getElementById('kpiMaxConsumeRate').textContent = top.consumeRate.toFixed(1) + '%';
+    document.getElementById('kpiMaxConsumeName').textContent = top.consumeRate >= 80 ? `${top.name}（超支警告）` : top.name;
+  }
+
+  // 总预算消耗率（donut + 数字块 + 进度条）
+  document.getElementById('bvDonutRate').textContent = consumeRate.toFixed(2) + '%';
+  document.getElementById('bvTotalBudget').textContent = totalBudget.toLocaleString();
+  document.getElementById('bvTotalConsume').textContent = totalConsume.toLocaleString();
+  document.getElementById('bvTotalRemain').textContent = remain.toLocaleString();
+  document.getElementById('bvProgressLabel').textContent = `${consumeRate.toFixed(2)}% / 100%`;
+  document.getElementById('bvProgressBar').style.width = Math.min(consumeRate, 100).toFixed(2) + '%';
+
+  // 付费/免费 stat-row
+  document.getElementById('bvPaidBudget').textContent = paidBudget.toLocaleString();
+  document.getElementById('bvPaidConsume').textContent = paidConsume.toLocaleString();
+  document.getElementById('bvPaidRate').textContent = paidRate.toFixed(2) + '%';
+  document.getElementById('bvFreeBudget').textContent = freeBudget.toLocaleString();
+  document.getElementById('bvFreeConsume').textContent = freeConsume.toLocaleString();
+  document.getElementById('bvFreeRate').textContent = freeRate.toFixed(2) + '%';
+})();
 
 // ── 每日明细（独立子页）──
 let d3Chart = null, d3CPAChart = null, d3BarChart = null, d3CumChart = null;
