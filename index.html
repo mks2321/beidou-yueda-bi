@@ -1540,37 +1540,18 @@ function renderDaily3() {
   const name = sel.value;
   const isAll = name === '__ALL__';
 
-  // "全部产品" 时聚合所有产品数据并构造虚拟产品
-  let prod, days;
+  // 拿到原始 days
+  let days;
+  let baseTarget, baseBudget;
   if (isAll) {
     days = aggregateDays(products.map(p => p.name));
-    const totalTarget = products.reduce((s,p) => s + p.target, 0);
-    const totalBudget = products.reduce((s,p) => s + p.budget, 0);
-    // 累计新增/消耗 直接从 dailyData 聚合，保证与最新数据同步
-    const totalAllNew = days.reduce((s, d) => s + d[1], 0);
-    const totalAllConsume = days.reduce((s, d) => s + d[2], 0);
-    prod = {
-      name: '全部产品',
-      target: totalTarget,
-      budget: totalBudget,
-      total: totalAllNew,
-      consume: totalAllConsume,
-      completion: totalTarget > 0 ? +(totalAllNew / totalTarget * 100).toFixed(2) : 0,
-      consumeRate: totalBudget > 0 ? +(totalAllConsume / totalBudget * 100).toFixed(2) : 0,
-    };
+    baseTarget = products.reduce((s,p) => s + p.target, 0);
+    baseBudget = products.reduce((s,p) => s + p.budget, 0);
   } else {
     const baseProd = products.find(p => p.name === name);
     days = dailyData[name] || [];
-    // 单产品也用 dailyData 聚合得到最新累计值（products 数组可能滞后）
-    const dailyNew = days.reduce((s, d) => s + d[1], 0);
-    const dailyConsume = days.reduce((s, d) => s + d[2], 0);
-    prod = baseProd ? {
-      ...baseProd,
-      total: dailyNew,
-      consume: dailyConsume,
-      completion: baseProd.target > 0 ? +(dailyNew / baseProd.target * 100).toFixed(2) : 0,
-      consumeRate: baseProd.budget > 0 ? +(dailyConsume / baseProd.budget * 100).toFixed(2) : 0,
-    } : null;
+    baseTarget = baseProd ? baseProd.target : 0;
+    baseBudget = baseProd ? baseProd.budget : 0;
   }
 
   // 日期范围筛选
@@ -1578,6 +1559,19 @@ function renderDaily3() {
   const dEnd = document.getElementById('daily3DateEnd').value;
   if (dStart) days = days.filter(d => d[0] >= dStart);
   if (dEnd) days = days.filter(d => d[0] <= dEnd);
+
+  // 累计值依据筛选后的 days 计算（与所选日期区间联动）
+  const sumNew = days.reduce((s, d) => s + d[1], 0);
+  const sumConsume = days.reduce((s, d) => s + d[2], 0);
+  const prod = {
+    name: isAll ? '全部产品' : name,
+    target: baseTarget,
+    budget: baseBudget,
+    total: sumNew,
+    consume: sumConsume,
+    completion: baseTarget > 0 ? +(sumNew / baseTarget * 100).toFixed(2) : 0,
+    consumeRate: baseBudget > 0 ? +(sumConsume / baseBudget * 100).toFixed(2) : 0,
+  };
 
   if (!days.length) {
     document.getElementById('daily3KPIs').innerHTML = '<span style="font-size:12px;color:var(--text3);">暂无每日数据</span>';
@@ -1743,32 +1737,17 @@ function renderDailyExp() {
   const name = sel.value;
   const isAll = name === '__ALL__';
 
-  let prod, days;
+  let days;
+  let baseTarget, baseBudget;
   if (isAll) {
     days = aggregateDays(products.map(p => p.name));
-    const totalTarget = products.reduce((s,p) => s + p.target, 0);
-    const totalBudget = products.reduce((s,p) => s + p.budget, 0);
-    const totalAllNew = days.reduce((s, d) => s + d[1], 0);
-    const totalAllConsume = days.reduce((s, d) => s + d[2], 0);
-    prod = {
-      name: '全部产品',
-      target: totalTarget, budget: totalBudget,
-      total: totalAllNew, consume: totalAllConsume,
-      completion: totalTarget > 0 ? +(totalAllNew / totalTarget * 100).toFixed(2) : 0,
-      consumeRate: totalBudget > 0 ? +(totalAllConsume / totalBudget * 100).toFixed(2) : 0,
-    };
+    baseTarget = products.reduce((s,p) => s + p.target, 0);
+    baseBudget = products.reduce((s,p) => s + p.budget, 0);
   } else {
     const baseProd = products.find(p => p.name === name);
     days = dailyData[name] || [];
-    const dailyNew = days.reduce((s, d) => s + d[1], 0);
-    const dailyConsume = days.reduce((s, d) => s + d[2], 0);
-    prod = baseProd ? {
-      ...baseProd,
-      total: dailyNew,
-      consume: dailyConsume,
-      completion: baseProd.target > 0 ? +(dailyNew / baseProd.target * 100).toFixed(2) : 0,
-      consumeRate: baseProd.budget > 0 ? +(dailyConsume / baseProd.budget * 100).toFixed(2) : 0,
-    } : null;
+    baseTarget = baseProd ? baseProd.target : 0;
+    baseBudget = baseProd ? baseProd.budget : 0;
   }
 
   // 日期范围筛选
@@ -1777,7 +1756,20 @@ function renderDailyExp() {
   if (dStart) days = days.filter(d => d[0] >= dStart);
   if (dEnd) days = days.filter(d => d[0] <= dEnd);
 
-  if (!days.length || !prod) {
+  // 累计值依据筛选后的 days 计算
+  const sumNew = days.reduce((s, d) => s + d[1], 0);
+  const sumConsume = days.reduce((s, d) => s + d[2], 0);
+  const prod = {
+    name: isAll ? '全部产品' : name,
+    target: baseTarget,
+    budget: baseBudget,
+    total: sumNew,
+    consume: sumConsume,
+    completion: baseTarget > 0 ? +(sumNew / baseTarget * 100).toFixed(2) : 0,
+    consumeRate: baseBudget > 0 ? +(sumConsume / baseBudget * 100).toFixed(2) : 0,
+  };
+
+  if (!days.length) {
     document.getElementById('dailyExpKPIs').innerHTML = '<span style="font-size:12px;color:var(--text3);">暂无每日数据（当前筛选范围）</span>';
     document.getElementById('dailyExpTable').innerHTML = '';
     document.getElementById('dailyExpStatRow').innerHTML = '';
