@@ -1546,8 +1546,9 @@ function renderDaily3() {
     days = aggregateDays(products.map(p => p.name));
     const totalTarget = products.reduce((s,p) => s + p.target, 0);
     const totalBudget = products.reduce((s,p) => s + p.budget, 0);
-    const totalAllNew = products.reduce((s,p) => s + p.total, 0);
-    const totalAllConsume = products.reduce((s,p) => s + p.consume, 0);
+    // 累计新增/消耗 直接从 dailyData 聚合，保证与最新数据同步
+    const totalAllNew = days.reduce((s, d) => s + d[1], 0);
+    const totalAllConsume = days.reduce((s, d) => s + d[2], 0);
     prod = {
       name: '全部产品',
       target: totalTarget,
@@ -1558,8 +1559,18 @@ function renderDaily3() {
       consumeRate: totalBudget > 0 ? +(totalAllConsume / totalBudget * 100).toFixed(2) : 0,
     };
   } else {
-    prod = products.find(p => p.name === name);
+    const baseProd = products.find(p => p.name === name);
     days = dailyData[name] || [];
+    // 单产品也用 dailyData 聚合得到最新累计值（products 数组可能滞后）
+    const dailyNew = days.reduce((s, d) => s + d[1], 0);
+    const dailyConsume = days.reduce((s, d) => s + d[2], 0);
+    prod = baseProd ? {
+      ...baseProd,
+      total: dailyNew,
+      consume: dailyConsume,
+      completion: baseProd.target > 0 ? +(dailyNew / baseProd.target * 100).toFixed(2) : 0,
+      consumeRate: baseProd.budget > 0 ? +(dailyConsume / baseProd.budget * 100).toFixed(2) : 0,
+    } : null;
   }
 
   // 日期范围筛选
@@ -1737,8 +1748,8 @@ function renderDailyExp() {
     days = aggregateDays(products.map(p => p.name));
     const totalTarget = products.reduce((s,p) => s + p.target, 0);
     const totalBudget = products.reduce((s,p) => s + p.budget, 0);
-    const totalAllNew = products.reduce((s,p) => s + p.total, 0);
-    const totalAllConsume = products.reduce((s,p) => s + p.consume, 0);
+    const totalAllNew = days.reduce((s, d) => s + d[1], 0);
+    const totalAllConsume = days.reduce((s, d) => s + d[2], 0);
     prod = {
       name: '全部产品',
       target: totalTarget, budget: totalBudget,
@@ -1747,8 +1758,17 @@ function renderDailyExp() {
       consumeRate: totalBudget > 0 ? +(totalAllConsume / totalBudget * 100).toFixed(2) : 0,
     };
   } else {
-    prod = products.find(p => p.name === name);
+    const baseProd = products.find(p => p.name === name);
     days = dailyData[name] || [];
+    const dailyNew = days.reduce((s, d) => s + d[1], 0);
+    const dailyConsume = days.reduce((s, d) => s + d[2], 0);
+    prod = baseProd ? {
+      ...baseProd,
+      total: dailyNew,
+      consume: dailyConsume,
+      completion: baseProd.target > 0 ? +(dailyNew / baseProd.target * 100).toFixed(2) : 0,
+      consumeRate: baseProd.budget > 0 ? +(dailyConsume / baseProd.budget * 100).toFixed(2) : 0,
+    } : null;
   }
 
   // 日期范围筛选
