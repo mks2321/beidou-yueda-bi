@@ -1386,10 +1386,23 @@ function renderBudget() {
     }
   });
 
+  // 用 dailyData 重新计算每个产品的 consume / consumeRate
+  const livePs = products.map(p => {
+    const d = dailyData[p.name];
+    const c = d ? d.reduce((s, x) => s + x[2], 0) : (p.consume || 0);
+    return {
+      ...p,
+      consume: c,
+      consumeRate: p.budget > 0 ? +(c / p.budget * 100).toFixed(2) : 0,
+    };
+  });
+
   const rankEl = document.getElementById('consumeRank');
-  const sorted = [...products].sort((a,b)=>b.consumeRate-a.consumeRate);
+  rankEl.innerHTML = '';
+  const sorted = [...livePs].sort((a,b)=>b.consumeRate-a.consumeRate);
+  const maxRate = sorted[0]?.consumeRate || 1;
   sorted.forEach((d,i) => {
-    const pct = (d.consumeRate / sorted[0].consumeRate * 100).toFixed(0);
+    const pct = (d.consumeRate / maxRate * 100).toFixed(0);
     rankEl.innerHTML += `<li class="rank-item">
       <span class="rank-num ${i<3?'top':''}">${i+1}</span>
       <span class="rank-name">${d.name}</span>
@@ -1398,7 +1411,7 @@ function renderBudget() {
     </li>`;
   });
 
-  const top8 = [...products].sort((a,b)=>b.budget-a.budget).slice(0,10);
+  const top8 = [...livePs].sort((a,b)=>b.budget-a.budget).slice(0,10);
   new Chart(document.getElementById('budgetChart'), {
     type:'bar',
     data:{
@@ -1419,7 +1432,8 @@ function renderBudget() {
   });
 
   const tbody = document.getElementById('budgetTable');
-  products.forEach(d => {
+  tbody.innerHTML = '';
+  livePs.forEach(d => {
     const remain = d.budget - d.consume;
     const warn = d.consumeRate >= 50 ? '<span class="badge badge-high">&#9888;&#65039; 超支风险</span>' : d.consumeRate >= 20 ? '<span class="badge badge-mid">注意</span>' : '<span class="badge badge-ok">正常</span>';
     tbody.innerHTML += `<tr>
