@@ -133,15 +133,7 @@ jobs:
           const overallCompletion = (totalNew / 3820000 * 100).toFixed(1);
           const overallConsumeRate = (totalConsume / 12120000 * 100).toFixed(1);
 
-          // 更新概览页 KPI 中的实际新增数据
-          html = html.replace(
-            /累计新增 575,153/g,
-            `累计新增 ${paidNew.toLocaleString()}`
-          );
-          html = html.replace(
-            /累计新增 507,024/g,
-            `累计新增 ${freeNew.toLocaleString()}`
-          );
+          // KPI 卡片由前端 JS 自动从 products 数组计算（refreshKPIs），无需在此替换
 
           fs.writeFileSync('index.html', html);
           console.log(`Updated! ${products.length} products, date: ${today}`);

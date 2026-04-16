@@ -468,26 +468,26 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     <div class="kpi-card" style="--kc:var(--blue)">
       <div class="icon">&#128179;</div>
       <div class="kpi-label">付费产品</div>
-      <div class="kpi-val">13</div>
-      <div class="kpi-desc">累计新增 1,065,260</div>
+      <div class="kpi-val" id="kpiPaidCount">13</div>
+      <div class="kpi-desc">累计新增 <span id="kpiPaidNew">1,065,260</span></div>
     </div>
     <div class="kpi-card" style="--kc:var(--green)">
       <div class="icon">&#127381;</div>
       <div class="kpi-label">免费产品</div>
-      <div class="kpi-val">4</div>
-      <div class="kpi-desc">累计新增 900,548</div>
+      <div class="kpi-val" id="kpiFreeCount">4</div>
+      <div class="kpi-desc">累计新增 <span id="kpiFreeNew">900,548</span></div>
     </div>
     <div class="kpi-card" style="--kc:var(--gold)">
       <div class="icon">&#128200;</div>
       <div class="kpi-label">最高完成率</div>
-      <div class="kpi-val">118.2%</div>
-      <div class="kpi-desc">禁漫天堂</div>
+      <div class="kpi-val" id="kpiMaxRate">118.2%</div>
+      <div class="kpi-desc" id="kpiMaxRateName">禁漫天堂</div>
     </div>
     <div class="kpi-card" style="--kc:var(--red)">
       <div class="icon">&#9888;&#65039;</div>
       <div class="kpi-label">最低完成率</div>
-      <div class="kpi-val">33.8%</div>
-      <div class="kpi-desc">萝莉岛APP</div>
+      <div class="kpi-val" id="kpiMinRate">33.8%</div>
+      <div class="kpi-desc" id="kpiMinRateName">萝莉岛APP</div>
     </div>
   </div>
 
@@ -611,26 +611,26 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     <div class="kpi-card" style="--kc:var(--gold)">
       <div class="icon">&#128176;</div>
       <div class="kpi-label">月度总预算</div>
-      <div class="kpi-val">1,212万</div>
-      <div class="kpi-desc">付费962万 · 免费250万</div>
+      <div class="kpi-val" id="kpiBudgetTotal">1,212万</div>
+      <div class="kpi-desc" id="kpiBudgetSplit">付费962万 · 免费250万</div>
     </div>
     <div class="kpi-card" style="--kc:var(--amber)">
       <div class="icon">&#128228;</div>
       <div class="kpi-label">已消耗</div>
-      <div class="kpi-val">389.91万</div>
-      <div class="kpi-desc">付费319.53万 · 免费70.38万</div>
+      <div class="kpi-val" id="kpiConsumeTotal">389.91万</div>
+      <div class="kpi-desc" id="kpiConsumeSplit">付费319.53万 · 免费70.38万</div>
     </div>
     <div class="kpi-card" style="--kc:var(--green)">
       <div class="icon">&#128181;</div>
       <div class="kpi-label">剩余预算</div>
-      <div class="kpi-val">822.09万</div>
-      <div class="kpi-desc">消耗率 32.17%</div>
+      <div class="kpi-val" id="kpiRemainTotal">822.09万</div>
+      <div class="kpi-desc" id="kpiRemainRate">消耗率 32.17%</div>
     </div>
     <div class="kpi-card" style="--kc:var(--red)">
       <div class="icon">&#128293;</div>
       <div class="kpi-label">最高消耗</div>
-      <div class="kpi-val">94.3%</div>
-      <div class="kpi-desc">51动漫（超支警告）</div>
+      <div class="kpi-val" id="kpiMaxConsumeRate">94.3%</div>
+      <div class="kpi-desc" id="kpiMaxConsumeName">51动漫（超支警告）</div>
     </div>
   </div>
 
@@ -1225,6 +1225,54 @@ setInterval(updateRealTime, 1000);
 
 // 侧边栏：显示数据最后更新时间
 document.getElementById('sidebarUpdateTime').textContent = lastUpdated;
+
+// 自动计算并刷新 KPI 卡片（产品投放页 + 预算与支出页）
+(function refreshKPIs() {
+  const paid = products.filter(p => p.type === '付费');
+  const free = products.filter(p => p.type === '免费');
+  const sum = (arr, key) => arr.reduce((s, p) => s + (p[key] || 0), 0);
+  const w = n => (n / 10000).toFixed(2) + '万';
+  const wRound = n => Math.round(n / 10000) + '万';
+
+  // —— 产品投放页 ——
+  const paidNew = sum(paid, 'total');
+  const freeNew = sum(free, 'total');
+  document.getElementById('kpiPaidCount').textContent = paid.length;
+  document.getElementById('kpiFreeCount').textContent = free.length;
+  document.getElementById('kpiPaidNew').textContent = paidNew.toLocaleString();
+  document.getElementById('kpiFreeNew').textContent = freeNew.toLocaleString();
+
+  const sortedByRate = [...products].filter(p => p.completion > 0).sort((a, b) => b.completion - a.completion);
+  if (sortedByRate.length) {
+    const top = sortedByRate[0], bot = sortedByRate[sortedByRate.length - 1];
+    document.getElementById('kpiMaxRate').textContent = top.completion.toFixed(1) + '%';
+    document.getElementById('kpiMaxRateName').textContent = top.name;
+    document.getElementById('kpiMinRate').textContent = bot.completion.toFixed(1) + '%';
+    document.getElementById('kpiMinRateName').textContent = bot.name;
+  }
+
+  // —— 预算与支出页 ——
+  const paidBudget = sum(paid, 'budget'), freeBudget = sum(free, 'budget');
+  const totalBudget = paidBudget + freeBudget;
+  const paidConsume = sum(paid, 'consume'), freeConsume = sum(free, 'consume');
+  const totalConsume = paidConsume + freeConsume;
+  const remain = totalBudget - totalConsume;
+  const consumeRate = totalBudget > 0 ? (totalConsume / totalBudget * 100) : 0;
+
+  document.getElementById('kpiBudgetTotal').textContent = wRound(totalBudget);
+  document.getElementById('kpiBudgetSplit').textContent = `付费${wRound(paidBudget)} · 免费${wRound(freeBudget)}`;
+  document.getElementById('kpiConsumeTotal').textContent = w(totalConsume);
+  document.getElementById('kpiConsumeSplit').textContent = `付费${w(paidConsume)} · 免费${w(freeConsume)}`;
+  document.getElementById('kpiRemainTotal').textContent = w(remain);
+  document.getElementById('kpiRemainRate').textContent = `消耗率 ${consumeRate.toFixed(2)}%`;
+
+  const sortedByConsume = [...products].filter(p => p.consumeRate > 0).sort((a, b) => b.consumeRate - a.consumeRate);
+  if (sortedByConsume.length) {
+    const top = sortedByConsume[0];
+    document.getElementById('kpiMaxConsumeRate').textContent = top.consumeRate.toFixed(1) + '%';
+    document.getElementById('kpiMaxConsumeName').textContent = top.consumeRate >= 80 ? `${top.name}（超支警告）` : top.name;
+  }
+})();
 
 // NAV
 const pageTitles = {
