@@ -559,6 +559,9 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   <div class="stat-row" id="daily3StatRow" style="margin-bottom:24px;">
   </div>
 
+  <!-- 收费/免费 完成进度（仅"全部产品"时显示）-->
+  <div id="daily3TypeProgress" style="display:none;margin-bottom:24px;"></div>
+
   <div class="card">
     <div class="card-title">每日数据明细</div>
     <div class="tbl-wrap">
@@ -1682,6 +1685,73 @@ function renderDaily3() {
     <div class="stat-item"><div class="stat-label">累计消耗</div><div class="stat-value c-amber">${prod.consume.toLocaleString()}</div></div>
     <div class="stat-item"><div class="stat-label">消耗率</div><div class="stat-value" style="color:${consumeColor(prod.consumeRate)}">${prod.consumeRate}%</div></div>
   `;
+
+  // 收费/免费 完成进度（仅"全部产品"时显示，受日期筛选影响）
+  const typeBox = document.getElementById('daily3TypeProgress');
+  if (isAll) {
+    const buildTypeStat = (typeName) => {
+      const prods = products.filter(p => p.type === typeName);
+      const names = prods.map(p => p.name);
+      let typeDays = aggregateDays(names);
+      if (dStart) typeDays = typeDays.filter(d => d[0] >= dStart);
+      if (dEnd) typeDays = typeDays.filter(d => d[0] <= dEnd);
+      const tNew = typeDays.reduce((s, d) => s + d[1], 0);
+      const tCons = typeDays.reduce((s, d) => s + d[2], 0);
+      const tTarget = prods.reduce((s, p) => s + p.target, 0);
+      const tBudget = prods.reduce((s, p) => s + p.budget, 0);
+      const compRate = tTarget > 0 ? (tNew / tTarget * 100) : 0;
+      const consRate = tBudget > 0 ? (tCons / tBudget * 100) : 0;
+      return { count: prods.length, tNew, tCons, tTarget, tBudget, compRate, consRate };
+    };
+    const paidS = buildTypeStat('付费');
+    const freeS = buildTypeStat('免费');
+
+    const renderCard = (title, color, s) => `
+      <div class="card" style="padding:18px 22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};"></span>
+            <span style="font-size:14px;font-weight:600;color:var(--text);">${title}</span>
+            <span style="font-size:11px;color:var(--text3);">共 ${s.count} 个产品</span>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:${rateColor(s.compRate)};">${s.compRate.toFixed(1)}%</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 24px;margin-bottom:14px;">
+          <div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">累计新增 / 月度目标</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);"><span style="color:var(--green);font-weight:700;">${s.tNew.toLocaleString()}</span> / ${s.tTarget.toLocaleString()}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">累计消耗 / 预算上限</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);"><span style="color:var(--amber);font-weight:700;">${s.tCons.toLocaleString()}</span> / ${s.tBudget.toLocaleString()}</div>
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">新增完成进度</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${rateColor(s.compRate)};">${s.compRate.toFixed(2)}%</span>
+          </div>
+          <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">
+            <div style="width:${Math.min(s.compRate, 100).toFixed(2)}%;height:100%;background:linear-gradient(90deg,${color},var(--green));border-radius:4px;transition:width 0.6s ease;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:11px;color:var(--text2);">预算消耗进度</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${consumeColor(s.consRate)};">${s.consRate.toFixed(2)}%</span>
+          </div>
+          <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">
+            <div style="width:${Math.min(s.consRate, 100).toFixed(2)}%;height:100%;background:linear-gradient(90deg,var(--amber),${consumeColor(s.consRate)});border-radius:4px;transition:width 0.6s ease;"></div>
+          </div>
+        </div>
+      </div>`;
+
+    typeBox.innerHTML = `<div class="grid-2">${renderCard('付费产品', 'var(--blue)', paidS)}${renderCard('免费产品', 'var(--green)', freeS)}</div>`;
+    typeBox.style.display = 'block';
+  } else {
+    typeBox.style.display = 'none';
+    typeBox.innerHTML = '';
+  }
 
   // Table
   const tbody = document.getElementById('daily3Table');
