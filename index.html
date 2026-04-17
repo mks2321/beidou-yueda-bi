@@ -525,6 +525,18 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 
   <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:var(--text2);">产品类型</span>
+      <select id="daily3TypeSelect" onchange="renderDaily3()" style="
+        background:var(--surface2);border:1px solid var(--border);color:var(--text);
+        padding:8px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans SC',sans-serif;
+        cursor:pointer;outline:none;min-width:100px;
+      ">
+        <option value="">全部</option>
+        <option value="付费">付费</option>
+        <option value="免费">免费</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
       <span style="font-size:12px;color:var(--text2);">选择产品</span>
       <select id="daily3ProductSelect" onchange="renderDaily3()" style="
         background:var(--surface2);border:1px solid var(--border);color:var(--text);
@@ -1575,16 +1587,27 @@ const dailyData = {
 let d3Chart = null, d3CPAChart = null, d3BarChart = null, d3CumChart = null;
 
 function initDaily3Select() {
-  const sel = document.getElementById('daily3ProductSelect');
-  sel.innerHTML = '<option value="__ALL__">全部产品（合计）</option>' + products.map(p =>
-    `<option value="${p.name}">${p.name}（${p.type}）</option>`
-  ).join('');
+  refreshDaily3ProductList();
   // 日期下拉
   const allDates = [...new Set(Object.values(dailyData).flat().map(d => d[0]))].sort();
   const optsStart = '<option value="">全部</option>' + allDates.map(d => `<option value="${d}">${d}</option>`).join('');
   const optsEnd = '<option value="">全部</option>' + allDates.map(d => `<option value="${d}">${d}</option>`).join('');
   document.getElementById('daily3DateStart').innerHTML = optsStart;
   document.getElementById('daily3DateEnd').innerHTML = optsEnd;
+}
+
+function refreshDaily3ProductList() {
+  const typeFilter = document.getElementById('daily3TypeSelect').value;
+  const filtered = typeFilter ? products.filter(p => p.type === typeFilter) : products;
+  const sel = document.getElementById('daily3ProductSelect');
+  const prev = sel.value;
+  const allLabel = typeFilter ? `全部${typeFilter}产品（合计）` : '全部产品（合计）';
+  sel.innerHTML = `<option value="__ALL__">${allLabel}</option>` + filtered.map(p =>
+    `<option value="${p.name}">${p.name}（${p.type}）</option>`
+  ).join('');
+  // 尝试保留之前的选择
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+  else sel.value = '__ALL__';
 }
 
 // 把多个产品的 days 数据按日期聚合
@@ -1608,17 +1631,21 @@ function resetDaily3Dates() {
 
 function renderDaily3() {
   window._daily3Done = true;
+  // 刷新产品下拉（受类型筛选联动）
+  refreshDaily3ProductList();
   const sel = document.getElementById('daily3ProductSelect');
   const name = sel.value;
   const isAll = name === '__ALL__';
+  const typeFilter = document.getElementById('daily3TypeSelect').value;
 
   // 拿到原始 days
   let days;
   let baseTarget, baseBudget;
   if (isAll) {
-    days = aggregateDays(products.map(p => p.name));
-    baseTarget = products.reduce((s,p) => s + p.target, 0);
-    baseBudget = products.reduce((s,p) => s + p.budget, 0);
+    const scope = typeFilter ? products.filter(p => p.type === typeFilter) : products;
+    days = aggregateDays(scope.map(p => p.name));
+    baseTarget = scope.reduce((s,p) => s + p.target, 0);
+    baseBudget = scope.reduce((s,p) => s + p.budget, 0);
   } else {
     const baseProd = products.find(p => p.name === name);
     days = dailyData[name] || [];
@@ -1686,9 +1713,9 @@ function renderDaily3() {
     <div class="stat-item"><div class="stat-label">消耗率</div><div class="stat-value" style="color:${consumeColor(prod.consumeRate)}">${prod.consumeRate}%</div></div>
   `;
 
-  // 收费/免费 完成进度（仅"全部产品"时显示，受日期筛选影响）
+  // 收费/免费 完成进度（仅"全部产品"且未筛选类型时显示）
   const typeBox = document.getElementById('daily3TypeProgress');
-  if (isAll) {
+  if (isAll && !typeFilter) {
     const buildTypeStat = (typeName) => {
       const prods = products.filter(p => p.type === typeName);
       const names = prods.map(p => p.name);
