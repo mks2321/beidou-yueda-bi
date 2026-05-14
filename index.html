@@ -488,6 +488,17 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     </div>
   </div>
 
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">付费产品完成进度</div>
+      <div id="paidProgressList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">免费产品完成进度</div>
+      <div id="freeProgressList"></div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-title">产品投放明细</div>
     <div class="tbl-wrap">
@@ -2968,6 +2979,45 @@ function renderProduct() {
       }
     }
   });
+
+  // 付费/免费 产品完成进度
+  const renderProgressList = (containerId, typeName) => {
+    const el = document.getElementById(containerId);
+    const typed = livePs.filter(p => p.type === typeName).sort((a,b) => b.completion - a.completion);
+    const totalNew = typed.reduce((s,p) => s + p.total, 0);
+    const totalTarget = typed.reduce((s,p) => s + p.target, 0);
+    const totalComp = totalTarget > 0 ? (totalNew / totalTarget * 100) : 0;
+    const totalConsume = typed.reduce((s,p) => s + p.consume, 0);
+    const totalBudget = typed.reduce((s,p) => s + p.budget, 0);
+    const totalConsRate = totalBudget > 0 ? (totalConsume / totalBudget * 100) : 0;
+    const color = typeName === '付费' ? 'var(--blue)' : 'var(--green)';
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 14px;border-bottom:1px solid var(--border);margin-bottom:12px;">
+        <div>
+          <div style="font-size:11px;color:var(--text3);">总进度 ${totalNew.toLocaleString()} / ${totalTarget.toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">消耗 ${totalConsume.toLocaleString()} / ${totalBudget.toLocaleString()} (${totalConsRate.toFixed(1)}%)</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:${rateColor(totalComp)}">${totalComp.toFixed(1)}%</div>
+      </div>` +
+      typed.map(p => {
+        const pct = Math.min(p.completion, 100);
+        return `<div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:12px;color:var(--text);font-weight:500;">${p.name}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:${rateColor(p.completion)}">${p.completion.toFixed(1)}%</span>
+          </div>
+          <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,${color},${rateColor(p.completion)});border-radius:4px;transition:width 0.6s;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px;">
+            <span style="font-size:10px;color:var(--text3);">${p.total.toLocaleString()} / ${p.target.toLocaleString()}</span>
+            <span style="font-size:10px;color:var(--text3);">CPA ¥${p.cpa.toFixed(2)}</span>
+          </div>
+        </div>`;
+      }).join('');
+  };
+  renderProgressList('paidProgressList', '付费');
+  renderProgressList('freeProgressList', '免费');
 
   const tbody = document.getElementById('productTable');
   livePs.forEach(d => {
