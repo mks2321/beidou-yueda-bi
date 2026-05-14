@@ -2711,6 +2711,7 @@ const monthConfigs = {
   '5月': {
     label: '2026年5月',
     lastUpdated: '2026-05-14 10:00',
+    monthBudget: 11850000,
     products: [
     { name:'良淫（抖阴Max）', type:'付费', target:43000, budget:231000, w1:5405, w2:4506, total:9911, consume:5192, completion:23.05, consumeRate:2.25, cpa:0.52 },
     { name:'51动漫', type:'付费', target:143000, budget:229000, w1:62483, w2:30523, total:93006, consume:53286, completion:65.04, consumeRate:23.27, cpa:0.57 },
@@ -3282,7 +3283,7 @@ function refreshKPIs() {
 
   // —— 预算与支出页 ——
   const paidBudget = sum(paid, 'budget'), freeBudget = sum(free, 'budget');
-  const totalBudget = paidBudget + freeBudget;
+  const totalBudget = monthConfigs[currentMonth].monthBudget || (paidBudget + freeBudget);
   const paidConsume = paid.reduce((s, p) => s + liveConsume(p), 0);
   const freeConsume = free.reduce((s, p) => s + liveConsume(p), 0);
   const totalConsume = paidConsume + freeConsume;
