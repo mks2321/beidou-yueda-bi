@@ -348,9 +348,8 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
       <option value="5月">2026年5月</option>
       <option value="4月">2026年4月</option>
     </select>
-    <span class="tb-badge gold">子公司：悦达</span>
+    <span class="tb-badge gold">派驻公司：悦达</span>
     <span class="tb-badge green">团队 12人</span>
-    <span class="tb-badge gold" id="tbProductCount">合作产品 15个</span>
     <span class="tb-badge" style="background:rgba(62,207,142,0.1);color:var(--green);border:1px solid rgba(62,207,142,0.25);">自动更新: <span id="updateTimeVal">—</span></span>
   </div>
 </div>
@@ -358,12 +357,12 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 <!-- ═══ PAGE 1: 项目概览 ═══ -->
 <div class="page active" id="page-overview">
   <div class="section-title">项目概览</div>
-  <div class="section-sub">北斗-悦达 | <span id="overviewMonthLabel">2026年5月</span> 项目管理总览 · 渠道拓展+渠道运营+财务风控+产品增长</div>
+  <div class="section-sub">北斗-悦达 | <span id="overviewMonthLabel">2026年6月</span> 项目管理总览 · 渠道拓展+渠道运营+财务风控</div>
 
   <div class="kpi-grid kpi-grid-5">
     <div class="kpi-card" style="--kc:var(--gold)">
       <div class="icon">&#127970;</div>
-      <div class="kpi-label">子公司</div>
+      <div class="kpi-label">派驻公司</div>
       <div class="kpi-val" style="font-size:20px;padding-top:4px">悦 达</div>
       <div class="kpi-desc">第一对接人：马奎斯</div>
     </div>
@@ -3367,7 +3366,6 @@ function switchMonth(month) {
   personalData = cfg.personalData || null;
 
   document.getElementById('sidebarUpdateTime').textContent = cfg.lastUpdated;
-  document.getElementById('tbProductCount').textContent = '合作产品 ' + products.length + '个';
 
   ['overviewMonthLabel','productMonthLabel','daily3MonthLabel',
    'budgetMonthLabel','dailyExpMonthLabel','ordersMonthLabel','coopMonthLabel',
