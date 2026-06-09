@@ -4180,6 +4180,12 @@ function renderCoop() {
 
 
 // Init
+['overviewMonthLabel','productMonthLabel','daily3MonthLabel',
+ 'budgetMonthLabel','dailyExpMonthLabel','ordersMonthLabel','coopMonthLabel',
+ 'overviewCompLabel','reviewMonthLabel'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.textContent = monthConfigs[currentMonth].label;
+});
 refreshKPIs();
 renderOverview();
 </script>
