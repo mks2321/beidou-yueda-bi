@@ -471,16 +471,10 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     </div>
   </div>
 
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">完成率排行（高→低）</div>
-      <ul class="rank-list" id="completionRank"></ul>
-    </div>
-    <div class="card">
-      <div class="card-title">各产品累计新增对比</div>
-      <div class="chart-wrap chart-h280">
-        <canvas id="productChart"></canvas>
-      </div>
+  <div class="card">
+    <div class="card-title">各产品累计新增对比</div>
+    <div class="chart-wrap chart-h280">
+      <canvas id="productChart"></canvas>
     </div>
   </div>
 
@@ -2783,7 +2777,7 @@ function switchMonth(month) {
   window._ordersDone = false;
   window._coopDone = false;
 
-  ['completionRank','productTable','personalRank','personalTable','personalDailyHead','personalDailyBody','consumeRank','budgetTable','overviewList','overviewKPITable'].forEach(id => {
+  ['productTable','personalRank','personalTable','personalDailyHead','personalDailyBody','consumeRank','budgetTable','overviewList','overviewKPITable'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '';
   });
@@ -2893,18 +2887,6 @@ function renderProduct() {
       completion: p.target > 0 ? +(t/p.target*100).toFixed(2) : 0,
       consumeRate: p.budget > 0 ? +(c/p.budget*100).toFixed(2) : 0,
       cpa: t > 0 ? +(c/t).toFixed(2) : 0 };
-  });
-
-  const rankEl = document.getElementById('completionRank');
-  const sorted = [...livePs].filter(d=>d.completion>0).sort((a,b) => b.completion - a.completion);
-  sorted.forEach((d,i) => {
-    const pct = (d.completion / sorted[0].completion * 100).toFixed(0);
-    rankEl.innerHTML += `<li class="rank-item">
-      <span class="rank-num ${i<3?'top':''}">${i+1}</span>
-      <span class="rank-name">${d.name}</span>
-      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${rateColor(d.completion)}"></div></div>
-      <span class="rank-val" style="color:${rateColor(d.completion)}">${d.completion.toFixed(1)}%</span>
-    </li>`;
   });
 
   const top10 = [...livePs].sort((a,b)=>b.total-a.total);
