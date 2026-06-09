@@ -319,11 +319,6 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
       <div class="nav-sub-item" onclick="switchBudgetSub('orders',this)">订单流水</div>
       <div class="nav-sub-item" onclick="switchBudgetSub('coop',this)">合作方式分析</div>
     </div>
-    <div class="nav-item" onclick="switchPage('team',this)">
-      <span class="nav-icon">&#128101;</span>
-      <span class="nav-label">人员与分工</span>
-      <span class="nav-dot"></span>
-    </div>
     <div class="nav-item" onclick="switchPage('review',this)">
       <span class="nav-icon">&#128203;</span>
       <span class="nav-label">月度复盘</span>
@@ -1017,107 +1012,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   </div>
 </div>
 
-<!-- ═══ PAGE 4: 人员与分工 ═══ -->
-<div class="page" id="page-team">
-  <div class="section-title">人员与分工</div>
-  <div class="section-sub">北斗-悦达 团队架构 · 12人 · 4个职能部门</div>
 
-  <div class="kpi-grid kpi-grid-4">
-    <div class="kpi-card" style="--kc:var(--blue)"><div class="icon">&#128225;</div><div class="kpi-label">渠道拓展</div><div class="kpi-val">6</div><div class="kpi-desc">组长+总裁助理+拓展专员</div></div>
-    <div class="kpi-card" style="--kc:var(--green)"><div class="icon">&#9881;&#65039;</div><div class="kpi-label">渠道运营</div><div class="kpi-val">5</div><div class="kpi-desc">组长兼拓展+运营专员x4</div></div>
-    <div class="kpi-card" style="--kc:var(--amber)"><div class="icon">&#128737;&#65039;</div><div class="kpi-label">财务风控</div><div class="kpi-val">1</div><div class="kpi-desc">风控财务专员</div></div>
-    <div class="kpi-card" style="--kc:var(--purple)"><div class="icon">&#128640;</div><div class="kpi-label">产品增长</div><div class="kpi-val">1</div><div class="kpi-desc">增长策略（兼）</div></div>
-  </div>
-
-  <!-- 渠道拓展 -->
-  <div class="dept-section">
-    <div class="dept-title"><span style="color:var(--blue)">&#128225; 渠道拓展部</span><div class="dept-line"></div><span style="font-size:11px;color:var(--text3)">6人</span></div>
-    <div class="team-grid">
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(201,168,76,0.15);color:var(--gold)">马</div>
-        <div class="team-name">马奎斯</div><div class="team-dept">渠道拓展</div><div class="team-role">组长 / 第一对接人</div>
-        <div class="team-task">负责整体对接协调</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(74,144,226,0.15);color:var(--blue)">赵</div>
-        <div class="team-name">赵尘</div><div class="team-dept">渠道拓展</div><div class="team-role">总裁助理/兼拓展</div>
-        <div class="team-task">收费 · 新增任务 400,000</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(74,144,226,0.15);color:var(--blue)">王</div>
-        <div class="team-name">王勃</div><div class="team-dept">渠道拓展</div><div class="team-role">拓展专员</div>
-        <div class="team-task">收费 · 新增任务 350,000</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(62,207,142,0.15);color:var(--green)">尹</div>
-        <div class="team-name">尹森</div><div class="team-dept">渠道拓展</div><div class="team-role">拓展专员</div>
-        <div class="team-task">免费 · 新增任务 700,000</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(74,144,226,0.15);color:var(--blue)">范</div>
-        <div class="team-name">范玮琪</div><div class="team-dept">渠道拓展</div><div class="team-role">拓展专员</div>
-        <div class="team-task">收费 · 新增任务 250,000</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(74,144,226,0.15);color:var(--blue)">李</div>
-        <div class="team-name">李漫妮</div><div class="team-dept">渠道拓展</div><div class="team-role">拓展专员</div>
-        <div class="team-task">收费 · 新增任务 500,000</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 渠道运营 -->
-  <div class="dept-section">
-    <div class="dept-title"><span style="color:var(--green)">&#9881;&#65039; 渠道运营部</span><div class="dept-line"></div><span style="font-size:11px;color:var(--text3)">5人</span></div>
-    <div class="team-grid">
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(201,168,76,0.15);color:var(--gold)">金</div>
-        <div class="team-name">金予</div><div class="team-dept">渠道运营</div><div class="team-role">组长/兼拓展</div>
-        <div class="team-task">免费 · 新增任务 1,300,000</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(62,207,142,0.15);color:var(--green)">聂</div>
-        <div class="team-name">聂淮序</div><div class="team-dept">渠道运营</div><div class="team-role">运营专员</div>
-        <div class="team-task">渠道日常运维</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(62,207,142,0.15);color:var(--green)">周</div>
-        <div class="team-name">周氏玉英</div><div class="team-dept">渠道运营</div><div class="team-role">运营专员</div>
-        <div class="team-task">渠道日常运维</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(62,207,142,0.15);color:var(--green)">老</div>
-        <div class="team-name">老八</div><div class="team-dept">渠道运营</div><div class="team-role">运营专员</div>
-        <div class="team-task">渠道日常运维</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(62,207,142,0.15);color:var(--green)">小</div>
-        <div class="team-name">小燕</div><div class="team-dept">渠道运营</div><div class="team-role">运营专员</div>
-        <div class="team-task">渠道日常运维</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 财务风控 + 产品增长 -->
-  <div class="grid-2">
-    <div class="dept-section" style="margin-bottom:0">
-      <div class="dept-title"><span style="color:var(--amber)">&#128737;&#65039; 财务风控</span><div class="dept-line"></div><span style="font-size:11px;color:var(--text3)">1人</span></div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(245,166,35,0.15);color:var(--amber)">温</div>
-        <div class="team-name">温夏青</div><div class="team-dept">财务风控</div><div class="team-role">风控财务</div>
-        <div class="team-task">预算监控·CPA分析</div>
-      </div>
-    </div>
-    <div class="dept-section" style="margin-bottom:0">
-      <div class="dept-title"><span style="color:var(--purple)">&#128640; 产品增长</span><div class="dept-line"></div><span style="font-size:11px;color:var(--text3)">1人</span></div>
-      <div class="team-card">
-        <div class="team-avatar" style="background:rgba(155,89,182,0.15);color:var(--purple)">吴</div>
-        <div class="team-name">吴限</div><div class="team-dept">产品增长</div><div class="team-role">增长策略（兼）</div>
-        <div class="team-task">产品增长策略·数据分析</div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ PAGE 5: 月度复盘 ═══ -->
 <div class="page" id="page-review">
@@ -2895,7 +2790,7 @@ function switchMonth(month) {
 }
 
 const pageTitles = {
-  overview:'项目概览', product:'产品投放', personal:'个人投放进度', budget:'预算与支出', team:'人员与分工', review:'月度复盘',
+  overview:'项目概览', product:'产品投放', personal:'个人投放进度', budget:'预算与支出', review:'月度复盘',
   daily3:'每日明细', dailyexp:'每日支出', orders:'订单流水', coop:'合作方式分析'
 };
 
