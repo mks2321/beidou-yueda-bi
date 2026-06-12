@@ -3595,9 +3595,17 @@ const monthConfigs = {
   },
 };
 
+// ===== 产品白名单 =====
+// 留空数组 = 显示全部产品；填入产品名 = 全看板（产品投放/概览/预算/每日明细/支出/累计对比）只显示并统计名单内产品。
+// 示例：const productWhitelist = ['51动漫','TikTok成人版','91Pron'];
+const productWhitelist = [];
+const _wlActive = () => Array.isArray(productWhitelist) && productWhitelist.length > 0;
+const wlProducts = arr => _wlActive() ? (arr || []).filter(p => productWhitelist.includes(p.name)) : arr;
+const wlDaily = obj => { if (!_wlActive() || !obj) return obj; const o = {}; for (const k in obj) if (productWhitelist.includes(k)) o[k] = obj[k]; return o; };
+
 let currentMonth = '6月';
-let products = monthConfigs[currentMonth].products;
-let dailyData = monthConfigs[currentMonth].dailyData;
+let products = wlProducts(monthConfigs[currentMonth].products);
+let dailyData = wlDaily(monthConfigs[currentMonth].dailyData);
 let activeOrders = monthConfigs[currentMonth].orders;
 let personalData = monthConfigs[currentMonth].personalData || null;
 
@@ -3620,8 +3628,8 @@ document.getElementById('sidebarUpdateTime').textContent = monthConfigs[currentM
 function switchMonth(month) {
   currentMonth = month;
   const cfg = monthConfigs[month];
-  products = cfg.products;
-  dailyData = cfg.dailyData;
+  products = wlProducts(cfg.products);
+  dailyData = wlDaily(cfg.dailyData);
   activeOrders = cfg.orders;
   personalData = cfg.personalData || null;
 
