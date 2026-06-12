@@ -8,12 +8,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #ffffff;
-  --surface: #f7f8fa;
-  --surface2: #eef0f4;
-  --surface3: #e4e7ee;
-  --border: rgba(0,0,0,0.10);
-  --border2: rgba(0,0,0,0.16);
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface2: #f5f7fa;
+  --surface3: #eceff4;
+  --border: rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.12);
+  --shadow: 0 1px 2px rgba(16,24,40,0.04), 0 2px 8px rgba(16,24,40,0.04);
+  --shadow-lg: 0 4px 16px rgba(16,24,40,0.10);
   --gold: #c9a84c;
   --gold-l: rgba(201,168,76,0.12);
   --gold-glow: rgba(201,168,76,0.25);
@@ -52,6 +54,7 @@ body::after {
   position: fixed; left: 0; top: 0; bottom: 0;
   width: 220px; background: var(--surface);
   border-right: 1px solid var(--border);
+  box-shadow: 1px 0 3px rgba(16,24,40,0.03);
   z-index: 100; display: flex; flex-direction: column;
 }
 .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
@@ -110,10 +113,10 @@ body::after {
 .kpi-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; padding: 20px 22px;
-  position: relative; overflow: hidden;
-  transition: transform 0.2s, border-color 0.2s; cursor: default;
+  position: relative; overflow: hidden; box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; cursor: default;
 }
-.kpi-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+.kpi-card:hover { transform: translateY(-2px); border-color: var(--border2); box-shadow: var(--shadow-lg); }
 .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background: var(--kc, var(--gold)); }
 .kpi-card .icon { position:absolute; right:16px; top:14px; font-size:20px; opacity:0.12; }
 .kpi-label { font-size:11px; color:var(--text2); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px; }
@@ -121,7 +124,8 @@ body::after {
 .kpi-desc { font-size:11px; color:var(--text3); }
 
 /* CARD */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); transition: box-shadow 0.2s; }
+.card:hover { box-shadow: var(--shadow-lg); }
 .card-title {
   font-size:13px; font-weight:600; color:var(--text2);
   letter-spacing:0.08em; text-transform:uppercase;
