@@ -8,12 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #07090f;
-  --surface: #0e1118;
-  --surface2: #141820;
-  --surface3: #1a2030;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
+  --bg: #ffffff;
+  --surface: #f7f8fa;
+  --surface2: #eef0f4;
+  --surface3: #e4e7ee;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.16);
   --gold: #c9a84c;
   --gold-l: rgba(201,168,76,0.12);
   --gold-glow: rgba(201,168,76,0.25);
@@ -26,9 +26,9 @@
   --amber: #f5a623;
   --amber-l: rgba(245,166,35,0.12);
   --purple: #9b59b6;
-  --text: #dde2ef;
-  --text2: #8892aa;
-  --text3: #4a5266;
+  --text: #1a1f2e;
+  --text2: #5a6478;
+  --text3: #8a93a6;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
@@ -145,11 +145,11 @@ thead th {
   padding:10px 14px; text-align:left;
   font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
   color:var(--text3); font-weight:600;
-  background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border);
+  background:rgba(0,0,0,0.02); border-bottom:1px solid var(--border);
 }
 thead th:not(:first-child) { text-align:right; }
-tbody tr { border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.15s; }
-tbody tr:hover { background:rgba(255,255,255,0.025); }
+tbody tr { border-bottom:1px solid rgba(0,0,0,0.04); transition:background 0.15s; }
+tbody tr:hover { background:rgba(0,0,0,0.025); }
 tbody td { padding:10px 14px; color:var(--text); }
 tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',monospace; font-size:12px; }
 
@@ -163,7 +163,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 
 /* PROGRESS */
 .prog-row { display:flex; align-items:center; gap:8px; justify-content:flex-end; }
-.prog-bar { width:56px; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+.prog-bar { width:56px; height:4px; background:rgba(0,0,0,0.08); border-radius:2px; overflow:hidden; }
 .prog-fill { height:100%; border-radius:2px; }
 .prog-high { background:var(--green); }
 .prog-med  { background:var(--gold); }
@@ -246,7 +246,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 .rank-num { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text3); width:18px; text-align:center; }
 .rank-num.top { color:var(--gold); font-weight:700; }
 .rank-name { flex:1; font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.rank-bar-wrap { flex:1; height:5px; background:rgba(255,255,255,0.07); border-radius:3px; overflow:hidden; }
+.rank-bar-wrap { flex:1; height:5px; background:rgba(0,0,0,0.07); border-radius:3px; overflow:hidden; }
 .rank-bar { height:100%; border-radius:3px; }
 .rank-val { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text2); min-width:55px; text-align:right; }
 
@@ -729,7 +729,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
             <span style="font-size:12px;color:var(--text2)">预算使用进度</span>
             <span id="bvProgressLabel" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold)">32.17% / 100%</span>
           </div>
-          <div style="height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden">
+          <div style="height:8px;background:rgba(0,0,0,0.07);border-radius:4px;overflow:hidden">
             <div id="bvProgressBar" style="width:32.17%;height:100%;background:linear-gradient(90deg,var(--amber),var(--gold));border-radius:4px;transition:width 1s ease"></div>
           </div>
           <div style="display:flex;justify-content:space-between;margin-top:5px">
@@ -3726,7 +3726,7 @@ function switchBudgetSub(sub, el) {
 }
 
 // CHART DEFAULTS
-const gridColor = 'rgba(255,255,255,0.05)';
+const gridColor = 'rgba(0,0,0,0.05)';
 const tickColor = '#4a5266';
 const defaultFont = { family: "'JetBrains Mono', monospace", size: 11 };
 
@@ -3811,7 +3811,7 @@ function renderProduct() {
             <span style="font-size:12px;color:var(--text);font-weight:500;">${p.name}</span>
             <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:${rateColor(p.completion)}">${p.completion.toFixed(1)}%</span>
           </div>
-          <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">
+          <div style="height:8px;background:rgba(0,0,0,0.06);border-radius:4px;overflow:hidden;">
             <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,${color},${rateColor(p.completion)});border-radius:4px;transition:width 0.6s;"></div>
           </div>
           <div style="display:flex;justify-content:space-between;margin-top:3px;">
@@ -3888,7 +3888,7 @@ function renderPersonal() {
       labels: barPpl.map(p => p.name),
       datasets: [
         { label: '实际新增', data: barPpl.map(p => p.actual), backgroundColor: 'rgba(74,144,226,0.7)', borderRadius: 4 },
-        { label: '月度目标', data: barPpl.map(p => p.target), backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(201,168,76,0.5)', borderWidth: 1, borderRadius: 4 }
+        { label: '月度目标', data: barPpl.map(p => p.target), backgroundColor: 'rgba(0,0,0,0.08)', borderColor: 'rgba(201,168,76,0.5)', borderWidth: 1, borderRadius: 4 }
       ]
     },
     options: {
@@ -3958,7 +3958,7 @@ function renderBudget() {
     data: {
       datasets: [{
         data: [+consumeRatePct.toFixed(2), +remainPct.toFixed(2)],
-        backgroundColor: ['rgba(201,168,76,0.85)', 'rgba(255,255,255,0.06)'],
+        backgroundColor: ['rgba(201,168,76,0.85)', 'rgba(0,0,0,0.06)'],
         borderColor: ['var(--bg)', 'transparent'],
         borderWidth: 3, hoverOffset: 4,
       }]
@@ -4366,7 +4366,7 @@ function renderDaily3() {
             <span style="font-size:11px;color:var(--text2);">新增完成进度</span>
             <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${rateColor(s.compRate)};">${s.compRate.toFixed(2)}%</span>
           </div>
-          <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">
+          <div style="height:8px;background:rgba(0,0,0,0.06);border-radius:4px;overflow:hidden;">
             <div style="width:${Math.min(s.compRate, 100).toFixed(2)}%;height:100%;background:linear-gradient(90deg,${color},var(--green));border-radius:4px;transition:width 0.6s ease;"></div>
           </div>
         </div>
@@ -4375,7 +4375,7 @@ function renderDaily3() {
             <span style="font-size:11px;color:var(--text2);">预算消耗进度</span>
             <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${consumeColor(s.consRate)};">${s.consRate.toFixed(2)}%</span>
           </div>
-          <div style="height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;">
+          <div style="height:8px;background:rgba(0,0,0,0.06);border-radius:4px;overflow:hidden;">
             <div style="width:${Math.min(s.consRate, 100).toFixed(2)}%;height:100%;background:linear-gradient(90deg,var(--amber),${consumeColor(s.consRate)});border-radius:4px;transition:width 0.6s ease;"></div>
           </div>
         </div>
@@ -4601,7 +4601,7 @@ function renderDailyExp() {
         <span>${prod.budget.toLocaleString()}</span>
       </div>
     </div>
-    <div style="height:10px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden;">
+    <div style="height:10px;background:rgba(0,0,0,0.08);border-radius:5px;overflow:hidden;">
       <div style="width:${Math.min(useRateNum, 100)}%;height:100%;background:linear-gradient(90deg, ${barColorHex}99, ${barColorHex});border-radius:5px;transition:width 1s ease;"></div>
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:6px;">
