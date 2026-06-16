@@ -4120,7 +4120,7 @@ let _noteTimer = null;
 function saveStrategyNote() { try { localStorage.setItem(STRAT_NOTE_KEY, document.getElementById('strategyNote').value); } catch(e) {} clearTimeout(_noteTimer); _noteTimer = setTimeout(cloudPush, 800); }
 
 // ===== 云端同步（Google Apps Script Web App）：部署后把 /exec 网址填入 SYNC_URL，即可所有人同步 =====
-const SYNC_URL = '';
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycbz_CHQNOUhi2uMB4LXqMpPrJYMmjW-1m_pl0Zt8LyxyBh2bW0fzb4hETSitgggfFP2v/exec';
 function syncEnabled() { return /^https?:\/\//.test(SYNC_URL); }
 function curNote() { const el=document.getElementById('strategyNote'); return el ? el.value : (localStorage.getItem(STRAT_NOTE_KEY)||''); }
 function cloudPush() {
