@@ -547,6 +547,10 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   <div class="section-title">投放策略</div>
   <div class="section-sub">选择时间段 · 按区间内产品投放表现（产出 / 消耗 / CPA）自动定策略，可手动调整并保存</div>
   <div class="card">
+    <div class="card-title">策略说明 <span style="font-weight:400;color:var(--text3);font-size:11px;margin-left:6px">本地保存，可随时编辑</span></div>
+    <textarea id="strategyNote" oninput="saveStrategyNote()" placeholder="在此填写本次投放策略说明 / 备注，例如：本周压缩高CPA产品预算，51动漫、良淫加投放量；TikTok虽CPA偏高但走量大，维持观察…（内容保存在本浏览器）" style="width:100%;min-height:96px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px 14px;font-size:13px;font-family:'Noto Sans SC',sans-serif;line-height:1.7;resize:vertical;box-sizing:border-box;"></textarea>
+  </div>
+  <div class="card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
       <span style="font-size:12px;color:var(--text2);font-weight:600;">时间段</span>
       <input type="date" id="stratStart" onchange="renderStrategy()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-size:12px;">
@@ -4110,6 +4114,9 @@ try { stratOverrides = JSON.parse(localStorage.getItem(STRAT_LS_KEY) || '{}'); }
 function saveStratOverrides() { try { localStorage.setItem(STRAT_LS_KEY, JSON.stringify(stratOverrides)); } catch(e) {} }
 function setStratOverride(name, cat) { stratOverrides[name] = cat; saveStratOverrides(); renderStrategy(); }
 function resetStrategyOverrides() { stratOverrides = {}; saveStratOverrides(); renderStrategy(); }
+const STRAT_NOTE_KEY = 'bi_strategy_note';
+function loadStrategyNote() { try { const el=document.getElementById('strategyNote'); if (el) el.value = localStorage.getItem(STRAT_NOTE_KEY) || ''; } catch(e) {} }
+function saveStrategyNote() { try { localStorage.setItem(STRAT_NOTE_KEY, document.getElementById('strategyNote').value); } catch(e) {} }
 const STRAT_CATS = {
   '加投': { icon:'↑', color:'var(--green)', action:'加预算放量' },
   '维持': { icon:'→', color:'var(--blue)',  action:'保持当前投放' },
@@ -4126,6 +4133,7 @@ function initStrategyDates() {
   document.getElementById('stratEnd').value = last;
 }
 function renderStrategy() {
+  loadStrategyNote();
   initStrategyDates();
   const s = document.getElementById('stratStart').value, e = document.getElementById('stratEnd').value;
   const rows = buildCompareDaily(), tm = buildTypeMap();
