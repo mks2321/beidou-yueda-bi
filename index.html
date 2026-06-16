@@ -547,8 +547,8 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
   <div class="section-title">投放策略</div>
   <div class="section-sub">选择时间段 · 按区间内产品投放表现（产出 / 消耗 / CPA）自动定策略，可手动调整并保存</div>
   <div class="card">
-    <div class="card-title">策略说明 <span style="font-weight:400;color:var(--text3);font-size:11px;margin-left:6px">本地保存，可随时编辑</span></div>
-    <textarea id="strategyNote" oninput="saveStrategyNote()" placeholder="在此填写本次投放策略说明 / 备注，例如：本周压缩高CPA产品预算，51动漫、良淫加投放量；TikTok虽CPA偏高但走量大，维持观察…（内容保存在本浏览器）" style="width:100%;min-height:96px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px 14px;font-size:13px;font-family:'Noto Sans SC',sans-serif;line-height:1.7;resize:vertical;box-sizing:border-box;"></textarea>
+    <div class="card-title">策略说明 <span style="font-weight:400;color:var(--text3);font-size:11px;margin-left:6px">编辑后所有人同步</span></div>
+    <textarea id="strategyNote" oninput="saveStrategyNote()" placeholder="在此填写本次投放策略说明 / 备注，例如：本周压缩高CPA产品预算，51动漫、良淫加投放量；TikTok虽CPA偏高但走量大，维持观察…（保存后所有人可见）" style="width:100%;min-height:96px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px 14px;font-size:13px;font-family:'Noto Sans SC',sans-serif;line-height:1.7;resize:vertical;box-sizing:border-box;"></textarea>
   </div>
   <div class="card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
@@ -561,7 +561,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     <div class="kpi-grid kpi-grid-4" id="strategyKpis"></div>
   </div>
   <div class="card">
-    <div class="card-title">产品策略明细 <span style="font-weight:400;color:var(--text3);font-size:11px;margin-left:6px">「策略」列可手动改，改后本地保存</span></div>
+    <div class="card-title">产品策略明细 <span style="font-weight:400;color:var(--text3);font-size:11px;margin-left:6px">「策略」列可手动改，改后所有人同步</span></div>
     <div class="tbl-wrap">
       <table>
         <thead><tr><th>产品</th><th>类型</th><th>区间新增</th><th>区间消耗</th><th>CPA</th><th>自动建议</th><th>策略</th><th>建议动作</th></tr></thead>
