@@ -497,6 +497,27 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-title">产品投放跨月对比</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+      <select id="cmpMonthA" onchange="renderCompare()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;"></select>
+      <span style="color:var(--text3);font-size:12px;">对比</span>
+      <select id="cmpMonthB" onchange="renderCompare()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC',sans-serif;"></select>
+      <span style="font-size:11px;color:var(--text3);margin-left:4px;">环比 =（后月 − 前月）/ 前月</span>
+    </div>
+    <div class="chart-wrap chart-h280" style="margin-bottom:18px;">
+      <canvas id="compareChart"></canvas>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>产品</th><th>类型</th><th id="cmpHANew">前月新增</th><th id="cmpHBNew">后月新增</th><th>新增环比</th><th id="cmpHAComp">前月完成率</th><th id="cmpHBComp">后月完成率</th><th id="cmpHACons">前月消耗</th><th id="cmpHBCons">后月消耗</th></tr>
+        </thead>
+        <tbody id="compareTable"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <!-- ═══ PAGE 2C: 个人投放进度 ═══ -->
@@ -3928,6 +3949,82 @@ function renderProduct() {
       <td><span style="color:${consumeColor(d.consumeRate)}">${d.consumeRate.toFixed(1)}%</span></td>
       <td style="color:var(--text2)">${d.cpa.toFixed(2)}</td>
     </tr>`;
+  });
+
+  renderCompare();
+}
+
+// 产品投放跨月对比
+let compareChart = null;
+function initCompareSelects() {
+  const selA = document.getElementById('cmpMonthA');
+  const selB = document.getElementById('cmpMonthB');
+  if (selA.options.length) return;
+  const keys = Object.keys(monthConfigs).sort((a,b)=>parseInt(a)-parseInt(b));
+  const opts = keys.map(k=>`<option value="${k}">${monthConfigs[k].label||k}</option>`).join('');
+  selA.innerHTML = opts; selB.innerHTML = opts;
+  const ci = keys.indexOf(currentMonth);
+  selB.value = currentMonth;
+  selA.value = keys[Math.max(0, ci-1)] || keys[0];
+}
+function renderCompare() {
+  initCompareSelects();
+  const a = document.getElementById('cmpMonthA').value;
+  const b = document.getElementById('cmpMonthB').value;
+  const la = (monthConfigs[a]&&monthConfigs[a].label) || a;
+  const lb = (monthConfigs[b]&&monthConfigs[b].label) || b;
+  const pa = wlProducts((monthConfigs[a]&&monthConfigs[a].products) || []);
+  const pb = wlProducts((monthConfigs[b]&&monthConfigs[b].products) || []);
+  const ma = {}, mb = {};
+  pa.forEach(p=>ma[p.name]=p); pb.forEach(p=>mb[p.name]=p);
+  const names = [...new Set([...pa.map(p=>p.name), ...pb.map(p=>p.name)])];
+  const rows = names.map(n=>{
+    const A=ma[n], B=mb[n];
+    return { name:n, type:(B||A).type,
+      aNew:A?A.total:null, bNew:B?B.total:null,
+      aComp:A?A.completion:null, bComp:B?B.completion:null,
+      aCons:A?A.consume:null, bCons:B?B.consume:null };
+  }).sort((x,y)=>(y.bNew||0)-(x.bNew||0));
+  document.getElementById('cmpHANew').textContent = la+'新增';
+  document.getElementById('cmpHBNew').textContent = lb+'新增';
+  document.getElementById('cmpHAComp').textContent = la+'完成率';
+  document.getElementById('cmpHBComp').textContent = lb+'完成率';
+  document.getElementById('cmpHACons').textContent = la+'消耗';
+  document.getElementById('cmpHBCons').textContent = lb+'消耗';
+  const fnum = v => v==null ? '—' : v.toLocaleString();
+  const fpct = v => v==null ? '—' : v.toFixed(1)+'%';
+  document.getElementById('compareTable').innerHTML = rows.map(r=>{
+    let delta='—', dc='var(--text3)';
+    if (r.aNew!=null && r.bNew!=null && r.aNew>0){
+      const d=(r.bNew-r.aNew)/r.aNew*100;
+      dc = d>=0?'var(--green)':'var(--red)';
+      delta = (d>=0?'+':'')+d.toFixed(1)+'%';
+    } else if (r.aNew==null && r.bNew!=null){ delta='新上'; dc='var(--blue)'; }
+    else if (r.aNew!=null && r.bNew==null){ delta='已停'; dc='var(--text3)'; }
+    return `<tr>
+      <td style="font-weight:500">${r.name}</td>
+      <td><span style="font-size:11px;color:var(--text3)">${r.type}</span></td>
+      <td>${fnum(r.aNew)}</td>
+      <td style="font-weight:600">${fnum(r.bNew)}</td>
+      <td style="color:${dc};font-weight:600">${delta}</td>
+      <td>${fpct(r.aComp)}</td>
+      <td>${fpct(r.bComp)}</td>
+      <td style="color:var(--amber)">${fnum(r.aCons)}</td>
+      <td style="color:var(--amber)">${fnum(r.bCons)}</td>
+    </tr>`;
+  }).join('');
+  if (compareChart) compareChart.destroy();
+  compareChart = new Chart(document.getElementById('compareChart'), {
+    type:'bar',
+    data:{ labels: rows.map(r=>r.name.length>6?r.name.slice(0,6)+'…':r.name),
+      datasets:[
+        { label:la, data:rows.map(r=>r.aNew||0), backgroundColor:'rgba(201,168,76,0.55)', borderRadius:4 },
+        { label:lb, data:rows.map(r=>r.bNew||0), backgroundColor:'rgba(74,144,226,0.78)', borderRadius:4 }
+      ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:tickColor, font:defaultFont } } },
+      scales:{ x:{ ticks:{ color:tickColor, font:{size:10} }, grid:{display:false} },
+        y:{ ticks:{ color:tickColor, font:defaultFont, callback:v=>fmt(v) }, grid:{color:gridColor} } } }
   });
 }
 
