@@ -254,19 +254,29 @@ def main():
     om = re.search(r"orders:\s*([A-Za-z_]\w*)", block)
     ovar = om.group(1) if om else 'ordersJun'
 
+    # 先只替换数据（不动 lastUpdated），用于判断数据是否真的变化
     block = replace_inner(block, 'products: [\n', '\n    ],', js_products(allp))
     block = replace_inner(block, 'dailyData: {\n', '\n    },', js_pdata(allp))
     block = replace_inner(block, 'personalData: {\n', '\n    },',
                           '      people: [\n' + js_people(people) + '\n      ],\n      daily: [\n' +
                           js_pdaily(pdaily, names) + '\n      ]')
+    html_new = html[:six] + block + html[end:]
+    html_new = re.sub(rf"const {ovar} = \[[\s\S]*?\n\];", js_orders(ords, ovar), html_new, count=1)
+
+    if html_new == html:
+        print(f'[OK] {mlabel} 数据无变化，未写入（个人{len(people)}人 产品{len(allp)}个 订单{len(ords)}条）')
+        return
+
+    # 数据有变化 -> 刷新当月 lastUpdated 为当前北京时间
     bj = (datetime.datetime.utcnow() + datetime.timedelta(hours=8)).strftime('%Y-%m-%d %H:%M')
-    block = re.sub(r"lastUpdated: '[^']*'", f"lastUpdated: '{bj}'", block, count=1)
+    s2 = html_new.index(f"'{mlabel}': {{")
+    nx = [mm.start() for mm in re.finditer(r"'\d+月': \{", html_new) if mm.start() > s2]
+    e2 = min(nx) if nx else html_new.index('\n};', s2)
+    blk2 = re.sub(r"lastUpdated: '[^']*'", f"lastUpdated: '{bj}'", html_new[s2:e2], count=1)
+    html_new = html_new[:s2] + blk2 + html_new[e2:]
 
-    html = html[:six] + block + html[end:]
-    # 替换 orders 内联数组
-    html = re.sub(rf"const {ovar} = \[[\s\S]*?\n\];", js_orders(ords, ovar), html, count=1)
-
-    open('index.html', 'w', encoding='utf-8').write(html)
+    open('index.html', 'w', encoding='utf-8').write(html_new)
+    html = html_new
 
     # node 语法校验
     chk = subprocess.run(
