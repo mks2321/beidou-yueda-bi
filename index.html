@@ -309,7 +309,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
     <div class="nav-sub" id="navSubProduct">
       <div class="nav-sub-item active" onclick="switchProductSub('main',this)">投放台账</div>
       <div class="nav-sub-item" onclick="switchProductSub('daily3',this)">每日明细</div>
-      <div class="nav-sub-item" onclick="switchProductSub('compare',this)">区间对比</div>
+      <div class="nav-sub-item" onclick="switchProductSub('compare',this)">数据对比</div>
       <div class="nav-sub-item" onclick="switchProductSub('strategy',this)">投放策略</div>
     </div>
     <div class="nav-item" onclick="switchPage('personal',this)">
@@ -504,9 +504,9 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 
 </div>
 
-<!-- ═══ PAGE 2B: 产品投放区间对比 ═══ -->
+<!-- ═══ PAGE 2B: 产品投放数据对比 ═══ -->
 <div class="page" id="page-compare">
-  <div class="section-title">产品投放区间对比</div>
+  <div class="section-title">产品投放数据对比</div>
   <div class="section-sub">任选两个日期区间（可跨月），按产品汇总新增 / 消耗对比 · 看环比增减</div>
 
   <div class="card">
@@ -3822,7 +3822,7 @@ function switchMonth(month) {
 
 const pageTitles = {
   overview:'项目概览', product:'产品投放', personal:'个人投放进度', budget:'预算与支出', review:'月度复盘',
-  daily3:'每日明细', compare:'产品投放对比', strategy:'投放策略', dailyexp:'每日支出', orders:'订单流水', coop:'合作方式分析'
+  daily3:'每日明细', compare:'产品投放数据对比', strategy:'投放策略', dailyexp:'每日支出', orders:'订单流水', coop:'合作方式分析'
 };
 
 function switchPage(id, el) {
