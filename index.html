@@ -4112,11 +4112,38 @@ const STRAT_LS_KEY = 'bi_strategy_overrides';
 let stratOverrides = {};
 try { stratOverrides = JSON.parse(localStorage.getItem(STRAT_LS_KEY) || '{}'); } catch(e) { stratOverrides = {}; }
 function saveStratOverrides() { try { localStorage.setItem(STRAT_LS_KEY, JSON.stringify(stratOverrides)); } catch(e) {} }
-function setStratOverride(name, cat) { stratOverrides[name] = cat; saveStratOverrides(); renderStrategy(); }
-function resetStrategyOverrides() { stratOverrides = {}; saveStratOverrides(); renderStrategy(); }
+function setStratOverride(name, cat) { stratOverrides[name] = cat; saveStratOverrides(); cloudPush(); renderStrategy(); }
+function resetStrategyOverrides() { stratOverrides = {}; saveStratOverrides(); cloudPush(); renderStrategy(); }
 const STRAT_NOTE_KEY = 'bi_strategy_note';
-function loadStrategyNote() { try { const el=document.getElementById('strategyNote'); if (el) el.value = localStorage.getItem(STRAT_NOTE_KEY) || ''; } catch(e) {} }
-function saveStrategyNote() { try { localStorage.setItem(STRAT_NOTE_KEY, document.getElementById('strategyNote').value); } catch(e) {} }
+function loadStrategyNote() { try { const el=document.getElementById('strategyNote'); if (el && document.activeElement!==el) el.value = localStorage.getItem(STRAT_NOTE_KEY) || ''; } catch(e) {} }
+let _noteTimer = null;
+function saveStrategyNote() { try { localStorage.setItem(STRAT_NOTE_KEY, document.getElementById('strategyNote').value); } catch(e) {} clearTimeout(_noteTimer); _noteTimer = setTimeout(cloudPush, 800); }
+
+// ===== 云端同步（Google Apps Script Web App）：部署后把 /exec 网址填入 SYNC_URL，即可所有人同步 =====
+const SYNC_URL = '';
+function syncEnabled() { return /^https?:\/\//.test(SYNC_URL); }
+function curNote() { const el=document.getElementById('strategyNote'); return el ? el.value : (localStorage.getItem(STRAT_NOTE_KEY)||''); }
+function cloudPush() {
+  if (!syncEnabled()) return;
+  try { fetch(SYNC_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ overrides: stratOverrides, note: curNote() }) }); } catch(e) {}
+}
+function cloudLoad() {
+  if (!syncEnabled()) return;
+  const fn = '__biSync' + Date.now();
+  const s = document.createElement('script');
+  window[fn] = d => {
+    try {
+      if (d && typeof d === 'object') {
+        if (d.overrides && typeof d.overrides === 'object') { stratOverrides = d.overrides; saveStratOverrides(); }
+        if (typeof d.note === 'string') { try { localStorage.setItem(STRAT_NOTE_KEY, d.note); } catch(e) {} const el=document.getElementById('strategyNote'); if (el && document.activeElement!==el) el.value = d.note; }
+        const ap = document.querySelector('.page.active'); if (ap && ap.id === 'page-strategy') renderStrategy();
+      }
+    } finally { delete window[fn]; s.remove(); }
+  };
+  s.onerror = () => { delete window[fn]; s.remove(); };
+  s.src = SYNC_URL + (SYNC_URL.indexOf('?')>=0?'&':'?') + 'action=get&callback=' + fn + '&_=' + Date.now();
+  document.body.appendChild(s);
+}
 const STRAT_CATS = {
   '加投': { icon:'↑', color:'var(--green)', action:'加预算放量' },
   '维持': { icon:'→', color:'var(--blue)',  action:'保持当前投放' },
@@ -5389,6 +5416,8 @@ function renderCoop() {
 });
 refreshKPIs();
 renderOverview();
+cloudLoad();
+if (syncEnabled()) setInterval(cloudLoad, 30000);
 </script>
 </body>
 </html>
