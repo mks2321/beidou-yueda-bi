@@ -545,9 +545,26 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono',mono
 <!-- ═══ PAGE 2D: 投放策略 ═══ -->
 <div class="page" id="page-strategy">
   <div class="section-title">投放策略</div>
-  <div class="section-sub"><span id="strategyMonthLabel">2026年6月</span> · 按完成率 / CPA / 消耗率自动给出 加投·维持·优化·暂停 建议</div>
-  <div class="kpi-grid kpi-grid-4" id="strategyKpis" style="margin-bottom:20px;"></div>
-  <div id="strategyGroups"></div>
+  <div class="section-sub">选择时间段 · 按区间内产品投放表现（产出 / 消耗 / CPA）自动定策略，可手动调整并保存</div>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--text2);font-weight:600;">时间段</span>
+      <input type="date" id="stratStart" onchange="renderStrategy()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-size:12px;">
+      <span style="color:var(--text3)">~</span>
+      <input type="date" id="stratEnd" onchange="renderStrategy()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;font-size:12px;">
+      <button class="cmp-type-btn" onclick="resetStrategyOverrides()" style="margin-left:auto;">重置手动调整</button>
+    </div>
+    <div class="kpi-grid kpi-grid-4" id="strategyKpis"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">产品策略明细 <span style="font-weight:400;color:var(--text3);font-size:11px;margin-left:6px">「策略」列可手动改，改后本地保存</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>产品</th><th>类型</th><th>区间新增</th><th>区间消耗</th><th>CPA</th><th>自动建议</th><th>策略</th><th>建议动作</th></tr></thead>
+        <tbody id="strategyTable"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ PAGE 2C: 个人投放进度 ═══ -->
@@ -4086,63 +4103,77 @@ function renderCompare() {
   });
 }
 
-// 投放策略：按 完成率/CPA/消耗率 自动分类
-function classifyStrategy(ps) {
-  const medCpa = {};
-  ['付费','免费'].forEach(t => {
-    const arr = ps.filter(p=>p.type===t && p.cpa>0).map(p=>p.cpa).sort((a,b)=>a-b);
-    medCpa[t] = arr.length ? arr[Math.floor(arr.length/2)] : 0;
-  });
-  return ps.map(p => {
-    const base = medCpa[p.type] || 0;
-    const cpaHigh = base>0 && p.cpa > base*1.3;
-    const cpaLow  = base>0 && p.cpa>0 && p.cpa < base*0.8;
-    const comp = p.completion, crate = p.consumeRate;
-    let cat, reason, action;
-    if (p.target <= 0) { cat='维持'; reason='未设目标'; action='补目标后再评估'; }
-    else if (comp < 35 && crate >= 70) { cat='暂停'; reason='消耗过半但完成率极低'; action='暂停或大幅压量'; }
-    else if (comp >= 80 && !cpaHigh) { cat='加投'; reason= cpaLow?'低成本高产出':'完成率高、成本可控'; action='加预算放量'; }
-    else if (cpaHigh) { cat='优化'; reason='CPA偏高但仍在产出'; action='压价 / 换素材'; }
-    else { cat='维持'; reason='完成率与CPA适中'; action='保持当前投放'; }
-    return { ...p, cat, reason, action };
-  });
+// 投放策略：按所选时间段内 产出/消耗/CPA 自动定级，可手动覆盖（localStorage 保存）
+const STRAT_LS_KEY = 'bi_strategy_overrides';
+let stratOverrides = {};
+try { stratOverrides = JSON.parse(localStorage.getItem(STRAT_LS_KEY) || '{}'); } catch(e) { stratOverrides = {}; }
+function saveStratOverrides() { try { localStorage.setItem(STRAT_LS_KEY, JSON.stringify(stratOverrides)); } catch(e) {} }
+function setStratOverride(name, cat) { stratOverrides[name] = cat; saveStratOverrides(); renderStrategy(); }
+function resetStrategyOverrides() { stratOverrides = {}; saveStratOverrides(); renderStrategy(); }
+const STRAT_CATS = {
+  '加投': { icon:'↑', color:'var(--green)', action:'加预算放量' },
+  '维持': { icon:'→', color:'var(--blue)',  action:'保持当前投放' },
+  '优化': { icon:'⚠', color:'var(--gold)',  action:'压价 / 换素材' },
+  '暂停': { icon:'✕', color:'var(--red)',   action:'暂停 / 止损' }
+};
+function initStrategyDates() {
+  if (document.getElementById('stratStart').value) return;
+  const M = parseInt(currentMonth) || 6, pad = n => String(n).padStart(2,'0');
+  document.getElementById('stratStart').value = `2026-${pad(M)}-01`;
+  let last = `2026-${pad(M)}-01`;
+  const dd = wlDaily(monthConfigs[currentMonth].dailyData || {});
+  for (const k in dd) (dd[k]||[]).forEach(([d]) => { const f='2026-'+d; if (f>last) last=f; });
+  document.getElementById('stratEnd').value = last;
 }
 function renderStrategy() {
-  document.getElementById('strategyMonthLabel').textContent = (monthConfigs[currentMonth] && monthConfigs[currentMonth].label) || currentMonth;
-  const ps = classifyStrategy(products.slice());
-  const cats = [
-    { key:'加投', icon:'↑', color:'var(--green)', desc:'低成本高产出，建议加预算放量' },
-    { key:'维持', icon:'→', color:'var(--blue)',  desc:'完成率与CPA适中，保持当前投放' },
-    { key:'优化', icon:'⚠', color:'var(--gold)',  desc:'CPA偏高，压价或换素材提效' },
-    { key:'暂停', icon:'✕', color:'var(--red)',   desc:'消耗高产出低，及时止损' },
-  ];
-  document.getElementById('strategyKpis').innerHTML = cats.map(c => {
-    const n = ps.filter(p=>p.cat===c.key).length;
+  initStrategyDates();
+  const s = document.getElementById('stratStart').value, e = document.getElementById('stratEnd').value;
+  const rows = buildCompareDaily(), tm = buildTypeMap();
+  const agg = {};
+  rows.forEach(r => { if (r.date>=s && r.date<=e) { (agg[r.name]=agg[r.name]||{n:0,c:0}); agg[r.name].n+=r.n; agg[r.name].c+=r.c; } });
+  const names = Object.keys(agg).filter(n => agg[n].n || agg[n].c);
+  const med = {};
+  ['付费','免费'].forEach(t => {
+    const a = names.filter(n=>tm[n]===t && agg[n].n>0).map(n=>agg[n].c/agg[n].n).sort((x,y)=>x-y);
+    med[t] = a.length ? a[Math.floor(a.length/2)] : 0;
+  });
+  const autoCat = n => {
+    const a = agg[n], cpa = a.n>0 ? a.c/a.n : 0, base = med[tm[n]]||0;
+    const cpaHigh = base>0 && cpa>base*1.3, cpaLow = base>0 && cpa>0 && cpa<base*0.8;
+    if (a.c>0 && a.n===0) return '暂停';
+    if (base>0 && cpa>base*2)  return '暂停';
+    if (cpaLow && a.n>0)       return '加投';
+    if (cpaHigh)               return '优化';
+    return '维持';
+  };
+  const data = names.map(n => {
+    const a = agg[n], cpa = a.n>0 ? a.c/a.n : 0, auto = autoCat(n);
+    return { name:n, type:tm[n]||'', rNew:a.n, rCons:a.c, cpa, auto,
+      cat: stratOverrides[n] || auto, overridden: !!stratOverrides[n] };
+  }).sort((x,y)=>y.rNew-x.rNew);
+  document.getElementById('strategyKpis').innerHTML = Object.keys(STRAT_CATS).map(k => {
+    const c = STRAT_CATS[k], n = data.filter(d=>d.cat===k).length;
     return `<div class="kpi-card" style="--kc:${c.color}">
       <div class="icon" style="font-style:normal">${c.icon}</div>
-      <div class="kpi-label">${c.key}</div>
+      <div class="kpi-label">${k}</div>
       <div class="kpi-val" style="color:${c.color}">${n}</div>
-      <div class="kpi-desc">${c.desc}</div></div>`;
+      <div class="kpi-desc">${c.action}</div></div>`;
   }).join('');
-  document.getElementById('strategyGroups').innerHTML = cats.map(c => {
-    const items = ps.filter(p=>p.cat===c.key).sort((a,b)=>b.total-a.total);
-    if (!items.length) return '';
-    const rows = items.map(p => `<tr>
-      <td style="font-weight:500">${p.name}</td>
-      <td><span style="font-size:11px;color:var(--text3)">${p.type}</span></td>
-      <td>${p.target>0 ? p.completion.toFixed(1)+'%' : '—'}</td>
-      <td>${p.cpa.toFixed(2)}</td>
-      <td>${p.consumeRate.toFixed(1)}%</td>
-      <td>${p.total.toLocaleString()}</td>
-      <td style="color:var(--text2);font-size:11px">${p.reason}</td>
-      <td style="color:${c.color};font-size:11px;font-weight:500">${p.action}</td>
-    </tr>`).join('');
-    return `<div class="card">
-      <div class="card-title" style="color:${c.color}"><span style="font-size:15px;margin-right:2px">${c.icon}</span>${c.key}（${items.length}）<span style="font-weight:400;color:var(--text3);font-size:11px;margin-left:8px">${c.desc}</span></div>
-      <div class="tbl-wrap"><table>
-        <thead><tr><th>产品</th><th>类型</th><th>完成率</th><th>CPA</th><th>消耗率</th><th>累计新增</th><th>判定</th><th>建议</th></tr></thead>
-        <tbody>${rows}</tbody></table></div></div>`;
-  }).join('');
+  document.getElementById('strategyTable').innerHTML = data.map(d => {
+    const c = STRAT_CATS[d.cat];
+    const opts = Object.keys(STRAT_CATS).map(k=>`<option value="${k}" ${k===d.cat?'selected':''}>${STRAT_CATS[k].icon} ${k}</option>`).join('');
+    const nameJs = d.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<tr>
+      <td style="font-weight:500;border-left:3px solid ${c.color};padding-left:11px">${d.name}</td>
+      <td><span style="font-size:11px;color:var(--text3)">${d.type}</span></td>
+      <td>${d.rNew.toLocaleString()}</td>
+      <td style="color:var(--amber)">${d.rCons.toLocaleString()}</td>
+      <td>${d.cpa.toFixed(2)}</td>
+      <td><span style="font-size:11px;color:var(--text3)">${STRAT_CATS[d.auto].icon} ${d.auto}</span></td>
+      <td><select onchange="setStratOverride('${nameJs}',this.value)" style="background:var(--surface2);border:1px solid ${d.overridden?c.color:'var(--border)'};color:${c.color};font-weight:600;padding:4px 8px;border-radius:6px;font-size:12px;font-family:'Noto Sans SC',sans-serif;">${opts}</select>${d.overridden?' <span style="font-size:10px;color:var(--text3)">手动</span>':''}</td>
+      <td style="color:${c.color};font-size:11px">${c.action}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">所选时间段无数据</td></tr>';
 }
 
 // PERSONAL
