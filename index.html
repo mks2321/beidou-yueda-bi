@@ -4175,9 +4175,31 @@ function submitStrategyNote() {
 const SYNC_URL = 'https://script.google.com/macros/s/AKfycbz_CHQNOUhi2uMB4LXqMpPrJYMmjW-1m_pl0Zt8LyxyBh2bW0fzb4hETSitgggfFP2v/exec';
 function syncEnabled() { return /^https?:\/\//.test(SYNC_URL); }
 function curNote() { const el=document.getElementById('strategyNote'); return el ? el.value : (localStorage.getItem(STRAT_NOTE_KEY)||''); }
+function getEditPwd() {
+  let p = sessionStorage.getItem('bi_edit_pwd');
+  if (!p) { p = prompt('请输入编辑密码（仅管理员可修改并同步）：') || ''; if (p) sessionStorage.setItem('bi_edit_pwd', p); }
+  return p;
+}
 function cloudPush() {
   if (!syncEnabled()) return;
-  try { fetch(SYNC_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ overrides: stratOverrides, note: curNote() }) }); } catch(e) {}
+  const pwd = getEditPwd();
+  if (!pwd) return;
+  const payload = encodeURIComponent(JSON.stringify({ overrides: stratOverrides, note: curNote() }));
+  const fn = '__biSet' + Date.now();
+  const s = document.createElement('script');
+  window[fn] = r => {
+    try {
+      const st = document.getElementById('strategyNoteStatus');
+      if (r && r.ok === false) {
+        sessionStorage.removeItem('bi_edit_pwd');
+        if (st) { st.textContent = '✗ ' + (r.error || '保存失败：密码错误'); st.style.color = 'var(--red)'; }
+        alert('保存失败：' + (r.error || '密码错误') + '（无权限修改）');
+      }
+    } finally { delete window[fn]; s.remove(); }
+  };
+  s.onerror = () => { delete window[fn]; s.remove(); };
+  s.src = SYNC_URL + (SYNC_URL.indexOf('?')>=0?'&':'?') + 'action=set&callback=' + fn + '&pwd=' + encodeURIComponent(pwd) + '&payload=' + payload + '&_=' + Date.now();
+  document.body.appendChild(s);
 }
 function cloudLoad() {
   if (!syncEnabled()) return;
