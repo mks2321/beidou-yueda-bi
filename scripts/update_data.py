@@ -152,7 +152,7 @@ def map_name(sheet_name, mp):
         return mp[sheet_name]
     return re.sub(r'^\d+', '', sheet_name).strip()  # 新产品：去掉开头年龄分级数字
 
-def parse_products(rows, typ, total_i, consume_i, dn, dq, dprefix):
+def parse_products(rows, typ, total_i, consume_i, dn, dq, dr, rtot_i, dprefix):
     out = []
     mp = PAID_MAP if typ == '付费' else FREE_MAP
     for r in rows[2:]:
@@ -174,20 +174,28 @@ def parse_products(rows, typ, total_i, consume_i, dn, dq, dprefix):
                 break
             nv = num(r[nc])
             qv = num(r[dq(d)]) if dq(d) < len(r) else 0
-            daily.append((d, nv, qv))
+            rc = dr(d) if dr else -1
+            rv = num(r[rc]) if (dr and 0 <= rc < len(r)) else 0
+            daily.append((d, nv, qv, rv))
             if d <= 7: w[0] += nv
             elif d <= 14: w[1] += nv
+        # 付费产品校验每日充值之和 = 总充值列
+        if rtot_i is not None:
+            rsum = sum(x[3] for x in daily)
+            rtot = num(r[rtot_i])
+            if rsum != rtot:
+                sys.exit(f'[ERROR] 产品 {nm} 每日充值和 {rsum} != 总充值 {rtot}（充值列定位可能错位）')
         comp = round(total/target*100, 2) if target > 0 else 0
         crate = round(consume/budget*100, 2) if budget > 0 else 0
         cpa = round(consume/total, 2) if total > 0 else 0
         out.append(dict(name=nm, type=typ, target=target, budget=budget, w1=w[0], w2=w[1],
                         total=total, consume=consume, completion=comp, consumeRate=crate, cpa=cpa,
-                        daily=[(f'{dprefix}-{d:02d}', nv, qv) for d, nv, qv in daily]))
+                        daily=[(f'{dprefix}-{d:02d}', nv, qv, rv) for d, nv, qv, rv in daily]))
     return out
 
 def build_products(pd, pf, dprefix):
-    paid = parse_products(pd, '付费', 5, 9, lambda d: 10+(d-1)*7, lambda d: 16+(d-1)*7, dprefix)
-    free = parse_products(pf, '免费', 5, 6, lambda d: 8+(d-1)*4, lambda d: 10+(d-1)*4, dprefix)
+    paid = parse_products(pd, '付费', 5, 9, lambda d: 10+(d-1)*7, lambda d: 16+(d-1)*7, lambda d: 14+(d-1)*7, 8, dprefix)
+    free = parse_products(pf, '免费', 5, 6, lambda d: 8+(d-1)*4, lambda d: 10+(d-1)*4, None, None, dprefix)
     allp = paid + free
     for p in allp:
         s = sum(x[1] for x in p['daily'])
@@ -231,7 +239,7 @@ def js_products(allp):
 def js_pdata(allp):
     out = []
     for p in allp:
-        arr = ", ".join('["%s", %s, %s]' % (d, n, q) for d, n, q in p['daily'])
+        arr = ", ".join('["%s", %s, %s, %s]' % (d, n, q, rv) for d, n, q, rv in p['daily'])
         out.append("    '%s': [%s]," % (p['name'], arr))
     return '\n'.join(out)
 
