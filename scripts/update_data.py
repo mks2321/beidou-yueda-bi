@@ -59,13 +59,14 @@ def parse_personal(rows, name_map, mlabel):
         k = norm(v)
         if k in name_map:
             cols.append((name_map[k], i))
-    total_col = None
+    total_col = rtot_col = None
     for r in rows:
         for ci, c in enumerate(r):
             if c.strip() == '新增总计':
                 total_col = ci
-                break
-        if total_col is not None:
+            elif c.strip() == '充值总计':
+                rtot_col = ci
+        if total_col is not None and rtot_col is not None:
             break
     def findrow(key):
         for r in rows:
@@ -80,11 +81,11 @@ def parse_personal(rows, name_map, mlabel):
         m = re.match(rf'^{mlabel}(\d+)日$', r[0].strip())
         if m:
             days[int(m.group(1))] = r
-    return cols, total_col, tgt, rate, tot, days
+    return cols, total_col, rtot_col, tgt, rate, tot, days
 
 def build_personal(charge, box, mlabel, dprefix):
-    c_cols, c_tot, c_tgt, c_rate, c_total, c_days = parse_personal(charge, CHARGE_NAMES, mlabel)
-    b_cols, b_tot, b_tgt, b_rate, b_total, b_days = parse_personal(box, BOX_NAMES, mlabel)
+    c_cols, c_tot, c_rtot, c_tgt, c_rate, c_total, c_days = parse_personal(charge, CHARGE_NAMES, mlabel)
+    b_cols, b_tot, b_rtot, b_tgt, b_rate, b_total, b_days = parse_personal(box, BOX_NAMES, mlabel)
     people = []
     for nm, ci in c_cols:
         people.append(dict(name=nm, target=num(c_tgt[ci]), actual=num(c_total[ci]),
@@ -102,21 +103,31 @@ def build_personal(charge, box, mlabel, dprefix):
         bt = num(br[b_tot]) if br else 0
         if ct == 0 and bt == 0:
             continue
-        e = {'date': f'{dprefix}-{d:02d}', 'total': ct + bt}
+        cr_rt = num(cr[c_rtot]) if (cr and c_rtot is not None) else 0
+        br_rt = num(br[b_rtot]) if (br and b_rtot is not None) else 0
+        e = {'date': f'{dprefix}-{d:02d}', 'total': ct + bt, 'rtotal': cr_rt + br_rt, 'r': {}}
         for nm, ci in c_cols:
             e[nm] = num(cr[ci]) if cr else 0
+            e['r'][nm] = num(cr[ci+1]) if cr else 0
         for nm, ci in b_cols:
             e[nm] = num(br[ci]) if br else 0
+            e['r'][nm] = num(br[ci+1]) if br else 0
         daily.append(e)
     # 校验
     for e in daily:
         s = sum(e[n] for n in names)
         if s != e['total']:
             sys.exit(f'[ERROR] 个人 {e["date"]} 人均之和 {s} != total {e["total"]}（列定位可能错位）')
+        rs = sum(e['r'][n] for n in names)
+        if rs != e['rtotal']:
+            sys.exit(f'[ERROR] 个人 {e["date"]} 充值人均之和 {rs} != 充值总计 {e["rtotal"]}（列定位可能错位）')
     for p in people:
         s = sum(e[p['name']] for e in daily)
         if s != p['actual']:
             sys.exit(f'[ERROR] 个人 {p["name"]} 累加 {s} != actual {p["actual"]}')
+        rsum = sum(e['r'][p['name']] for e in daily)
+        if rsum != p['recharge']:
+            sys.exit(f'[ERROR] 个人 {p["name"]} 充值累加 {rsum} != recharge {p["recharge"]}')
     return people, daily, names
 
 # ---------- 订单 ----------
@@ -192,12 +203,15 @@ def js_people(people):
         for p in people)
 
 def js_pdaily(daily, names):
+    def key(n):
+        return f"'{n}'" if re.search(r'[\/()]', n) else n
     lines = []
     for e in daily:
-        parts = [f"date:'{e['date']}'", f"total:{e['total']}"]
+        parts = [f"date:'{e['date']}'", f"total:{e['total']}", f"rtotal:{e['rtotal']}"]
         for n in names:
-            k = f"'{n}'" if re.search(r'[\/()]', n) else n
-            parts.append(f"{k}:{e[n]}")
+            parts.append(f"{key(n)}:{e[n]}")
+        rparts = ", ".join(f"{key(n)}:{e['r'][n]}" for n in names)
+        parts.append("r:{ " + rparts + " }")
         lines.append("        { " + ", ".join(parts) + " },")
     return '\n'.join(lines)
 
