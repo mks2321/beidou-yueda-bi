@@ -358,6 +358,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;cursor:pointer;outline:none;
       letter-spacing:0.05em;margin-right:4px;
     ">
+      <option value="7月">2026年7月</option>
       <option value="6月">2026年6月</option>
       <option value="5月">2026年5月</option>
       <option value="4月">2026年4月</option>
@@ -4157,7 +4158,24 @@ const ordersJun = [
 // ║              多月份数据 — 支持 4月/5月 切换                        ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
+const ordersJul = [];
+
 const monthConfigs = {
+  '7月': {
+    label: '2026年7月',
+    lastUpdated: '待更新',
+    products: [
+    ],
+    dailyData: {
+    },
+    orders: ordersJul,
+    personalData: {
+      people: [
+      ],
+      daily: [
+      ]
+    },
+  },
   '4月': {
     label: '2026年4月',
     lastUpdated: '2026-05-12 12:35',
