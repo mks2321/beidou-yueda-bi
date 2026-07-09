@@ -16,7 +16,8 @@ SHEETS = {
     # 收费产品：每日明细+总数 来自新表 1EjN(按月分区)；目标/预算 来自 7月产品目标表 1MpRa(按产品编号关联)
     'prodPD': ('1EjN4Mg3K_dxJwiZhU_BleCtk3cYgxFpW3wpEfck22bI', '0'),
     'prodTB': ('1MpRaGywYplqHzUiCzT2ecp5WBKeih4xHgouc7XNNoEQ', '0'),
-    'prodPF': ('1YTvdaQdnLGLhlDgL250C-PD7Xy7Nr3cylDNccBs3LYU', '507725995'),
+    # 免费产品：7月表 1MpRa 的免费APP页（旧格式，含每日+目标+预算）
+    'prodPF': ('1MpRaGywYplqHzUiCzT2ecp5WBKeih4xHgouc7XNNoEQ', '1210097737'),
 }
 
 def fetch(key):
