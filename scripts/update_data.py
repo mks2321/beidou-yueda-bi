@@ -13,9 +13,9 @@ SHEETS = {
     'charge': ('1M3-Jtwos2hujBVsl9WwzqMzog1i1RugCo4hBh1mK3sY', '0'),
     'box':    ('1M3-Jtwos2hujBVsl9WwzqMzog1i1RugCo4hBh1mK3sY', '174527901'),
     'orders': ('1rsSy5iyHt44ePIteZ9BdRrkMzz9tGp8apAyKKDKPL4w', '0'),
-    # 收费产品：每日明细+总数 来自新表 1EjN(按月分区)；目标/预算 仍取原表 1YTv(按产品编号关联)
+    # 收费产品：每日明细+总数 来自新表 1EjN(按月分区)；目标/预算 来自 7月产品目标表 1MpRa(按产品编号关联)
     'prodPD': ('1EjN4Mg3K_dxJwiZhU_BleCtk3cYgxFpW3wpEfck22bI', '0'),
-    'prodTB': ('1YTvdaQdnLGLhlDgL250C-PD7Xy7Nr3cylDNccBs3LYU', '0'),
+    'prodTB': ('1MpRaGywYplqHzUiCzT2ecp5WBKeih4xHgouc7XNNoEQ', '0'),
     'prodPF': ('1YTvdaQdnLGLhlDgL250C-PD7Xy7Nr3cylDNccBs3LYU', '507725995'),
 }
 
@@ -385,5 +385,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
