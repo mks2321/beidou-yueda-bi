@@ -12,7 +12,7 @@ SHEETS = {
     # 个人（充值/盒子）：2026-07 起改用新表 1M3-...
     'charge': ('1M3-Jtwos2hujBVsl9WwzqMzog1i1RugCo4hBh1mK3sY', '0'),
     'box':    ('1M3-Jtwos2hujBVsl9WwzqMzog1i1RugCo4hBh1mK3sY', '174527901'),
-    'orders': ('1rsSy5iyHt44ePIteZ9BdRrkMzz9tGp8apAyKKDKPL4w', '0'),
+    'orders': ('1mob_aU-Y4v-jycMFjLSQekEwEISrI92Z6KTpW5Nb0D4', '0'),  # 7月订单/请款流水
     # 收费产品：每日明细+总数 来自新表 1EjN(按月分区)；目标/预算 来自 7月产品目标表 1MpRa(按产品编号关联)
     'prodPD': ('1EjN4Mg3K_dxJwiZhU_BleCtk3cYgxFpW3wpEfck22bI', '0'),
     'prodTB': ('1MpRaGywYplqHzUiCzT2ecp5WBKeih4xHgouc7XNNoEQ', '0'),
