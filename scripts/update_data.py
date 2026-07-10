@@ -354,7 +354,7 @@ def main():
                           '      people: [\n' + js_people(people) + '\n      ],\n      daily: [\n' +
                           js_pdaily(pdaily, names) + '\n      ]')
     html_new = html[:six] + block + html[end:]
-    html_new = re.sub(rf"const {ovar} = \[[\s\S]*?\n\];", js_orders(ords, ovar), html_new, count=1)
+    html_new = re.sub(rf"const {ovar} = \[[\s\S]*?\];", js_orders(ords, ovar), html_new, count=1)
 
     if html_new == html:
         print(f'[OK] {mlabel} 数据无变化，未写入（个人{len(people)}人 产品{len(allp)}个 订单{len(ords)}条）')
