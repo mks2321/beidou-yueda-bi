@@ -172,10 +172,16 @@ def parse_products(rows, typ, total_i, consume_i, dn, dq, dr, rtot_i, dprefix):
         consume = num(r[consume_i])
         daily = []
         w = [0, 0]
+        started = False
         for d in range(1, 32):
             nc = dn(d)
-            if nc >= len(r) or (r[nc] or '').strip() in ('', '无数据'):
+            if nc >= len(r):
                 break
+            if (r[nc] or '').strip() in ('', '无数据'):
+                if started:
+                    break          # 数据结束
+                continue           # 前导空日：新产品上线前的空白，跳过、只采有值的天
+            started = True
             nv = num(r[nc])
             qv = num(r[dq(d)]) if dq(d) < len(r) else 0
             rc = dr(d) if dr else -1
@@ -232,10 +238,16 @@ def parse_paid_new(rows, tb, mlabel, dprefix):
         recharge = vip + coin
         daily = []
         w = [0, 0]
+        started = False
         for d in range(1, 32):
             nc = 7 + (d-1)*7
-            if nc >= len(r) or (r[nc] or '').strip() in ('', '无数据'):
+            if nc >= len(r):
                 break
+            if (r[nc] or '').strip() in ('', '无数据'):
+                if started:
+                    break          # 数据结束
+                continue           # 前导空日：新产品上线前的空白，跳过、只采有值的天
+            started = True
             nv = num(r[nc])
             rc = 11 + (d-1)*7
             qc = 13 + (d-1)*7
