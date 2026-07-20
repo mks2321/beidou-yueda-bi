@@ -374,7 +374,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
   <div class="section-title">项目概览</div>
   <div class="section-sub">北斗-悦达 | <span id="overviewMonthLabel">2026年6月</span> 项目管理总览 · 渠道拓展+渠道运营+财务风控</div>
 
-  <div class="kpi-grid kpi-grid-4">
+  <div class="kpi-grid kpi-grid-3">
     <div class="kpi-card" style="--kc:var(--gold)">
       <div class="icon">&#127970;</div>
       <div class="kpi-label">派驻公司</div>
@@ -398,6 +398,18 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       <div class="kpi-label">月度预算上限</div>
       <div class="kpi-val" id="ovBudgetTotal">-</div>
       <div class="kpi-desc" id="ovBudgetSplit">-</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--green)">
+      <div class="icon">&#128176;</div>
+      <div class="kpi-label">产品充值</div>
+      <div class="kpi-val" id="ovRechargeTotal">-</div>
+      <div class="kpi-desc" id="ovRechargeDesc">当月累计</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--purple)">
+      <div class="icon">&#129534;</div>
+      <div class="kpi-label">商务收款</div>
+      <div class="kpi-val" id="ovCollectTotal">-</div>
+      <div class="kpi-desc" id="ovCollectDesc">待接入数据源</div>
     </div>
   </div>
 
@@ -5906,6 +5918,19 @@ function refreshKPIs() {
   document.getElementById('ovTargetSplit').textContent = `付费${M(paidTarget)} · 免费${M(freeTarget)}`;
   document.getElementById('ovBudgetTotal').textContent = M(totalBudget);
   document.getElementById('ovBudgetSplit').textContent = `付费${M(paidBudget)} · 免费${M(freeBudget)}`;
+
+  // 产品充值 = 各产品每日总充值(dailyData 每条第4元素)之和
+  const ovRecharge = products.reduce((s, p) => {
+    const d = (typeof dailyData !== 'undefined') ? dailyData[p.name] : null;
+    return s + (d ? d.reduce((a, x) => a + (Number(x[3]) || 0), 0) : 0);
+  }, 0);
+  document.getElementById('ovRechargeTotal').textContent = M(ovRecharge);
+  document.getElementById('ovRechargeDesc').textContent = '当月累计 · VIP+金币';
+  // 商务收款 = 订单请款金额合计（临时口径，待用户接入正式来源后替换）
+  const ovCollect = (typeof activeOrders !== 'undefined' && activeOrders)
+    ? activeOrders.reduce((s, o) => s + (Number(o[9]) || 0), 0) : 0;
+  document.getElementById('ovCollectTotal').textContent = M(ovCollect);
+  document.getElementById('ovCollectDesc').textContent = '临时取订单请款 · 待确认源';
 
   // 月度核心指标表
   const totalTarget = paidTarget + freeTarget;
