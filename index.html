@@ -6135,11 +6135,16 @@ function refreshKPIs() {
   }, 0);
   document.getElementById('ovRechargeTotal').textContent = M(ovRecharge);
   document.getElementById('ovRechargeDesc').textContent = '当月累计 · VIP+金币';
-  // 商务收款 = 订单请款金额合计（临时口径，待用户接入正式来源后替换）
-  const ovCollect = (typeof activeOrders !== 'undefined' && activeOrders)
-    ? activeOrders.reduce((s, o) => s + (Number(o[9]) || 0), 0) : 0;
-  document.getElementById('ovCollectTotal').textContent = M(ovCollect);
-  document.getElementById('ovCollectDesc').textContent = '临时取订单请款 · 待确认源';
+  // 商务收款：用户提供的固定值（按月）。目前仅 7 月有数，其它月份留空。
+  const BIZ_COLLECT = { '7月': { collect: 9678627, target: 25000000 } };
+  const _biz = BIZ_COLLECT[currentMonth];
+  if (_biz) {
+    document.getElementById('ovCollectTotal').textContent = M(_biz.collect);
+    document.getElementById('ovCollectDesc').textContent = `目标${M(_biz.target)} · 达成${(_biz.collect / _biz.target * 100).toFixed(1)}%`;
+  } else {
+    document.getElementById('ovCollectTotal').textContent = '—';
+    document.getElementById('ovCollectDesc').textContent = '待接入数据源';
+  }
 
   // 月度核心指标表
   const totalTarget = paidTarget + freeTarget;
