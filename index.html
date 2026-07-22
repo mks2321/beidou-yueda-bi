@@ -6128,13 +6128,16 @@ function refreshKPIs() {
   document.getElementById('ovBudgetTotal').textContent = M(totalBudget);
   document.getElementById('ovBudgetSplit').textContent = `付费${M(paidBudget)} · 免费${M(freeBudget)}`;
 
-  // 产品充值 = 各产品每日总充值(dailyData 每条第4元素)之和
-  const ovRecharge = products.reduce((s, p) => {
-    const d = (typeof dailyData !== 'undefined') ? dailyData[p.name] : null;
-    return s + (d ? d.reduce((a, x) => a + (Number(x[3]) || 0), 0) : 0);
-  }, 0);
-  document.getElementById('ovRechargeTotal').textContent = M(ovRecharge);
-  document.getElementById('ovRechargeDesc').textContent = '当月累计 · VIP+金币';
+  // 产品充值：用户提供的固定值（按月）。目前仅 7 月有数，其它月份留空。
+  const PROD_RECHARGE = { '7月': { collect: 8736930, target: 13000000 } };
+  const _pr = PROD_RECHARGE[currentMonth];
+  if (_pr) {
+    document.getElementById('ovRechargeTotal').textContent = M(_pr.collect);
+    document.getElementById('ovRechargeDesc').textContent = `目标${M(_pr.target)} · 达成${(_pr.collect / _pr.target * 100).toFixed(1)}%`;
+  } else {
+    document.getElementById('ovRechargeTotal').textContent = '—';
+    document.getElementById('ovRechargeDesc').textContent = '待接入数据源';
+  }
   // 商务收款：用户提供的固定值（按月）。目前仅 7 月有数，其它月份留空。
   const BIZ_COLLECT = { '7月': { collect: 9678627, target: 25000000 } };
   const _biz = BIZ_COLLECT[currentMonth];
