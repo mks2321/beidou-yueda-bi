@@ -109,22 +109,22 @@ def build_personal(charge, box, mlabel, dprefix):
             continue
         cr_rt = num(cr[c_rtot]) if (cr and c_rtot is not None) else 0
         br_rt = num(br[b_rtot]) if (br and b_rtot is not None) else 0
-        e = {'date': f'{dprefix}-{d:02d}', 'total': ct + bt, 'rtotal': cr_rt + br_rt, 'r': {}}
+        e = {'date': f'{dprefix}-{d:02d}', 'r': {}}
         for nm, ci in c_cols:
             e[nm] = num(cr[ci]) if cr else 0
             e['r'][nm] = num(cr[ci+1]) if cr else 0
         for nm, ci in b_cols:
             e[nm] = num(br[ci]) if br else 0
             e['r'][nm] = num(br[ci+1]) if br else 0
+        # 每日总计按各人之和自动计算（表内“新增总计/充值总计”列偶有填错或漏新人，不作准）
+        e['total'] = sum(e[n] for n in names)
+        e['rtotal'] = sum(e['r'][n] for n in names)
+        if e['total'] != ct + bt:
+            print(f'[WARN] 个人 {e["date"]} 人均之和 {e["total"]} != 表内新增总计 {ct + bt}（以人均之和为准）')
+        if e['rtotal'] != cr_rt + br_rt:
+            print(f'[WARN] 个人 {e["date"]} 充值人均之和 {e["rtotal"]} != 表内充值总计 {cr_rt + br_rt}（以人均之和为准）')
         daily.append(e)
-    # 校验
-    for e in daily:
-        s = sum(e[n] for n in names)
-        if s != e['total']:
-            sys.exit(f'[ERROR] 个人 {e["date"]} 人均之和 {s} != total {e["total"]}（列定位可能错位）')
-        rs = sum(e['r'][n] for n in names)
-        if rs != e['rtotal']:
-            sys.exit(f'[ERROR] 个人 {e["date"]} 充值人均之和 {rs} != 充值总计 {e["rtotal"]}（列定位可能错位）')
+    # 校验：每人每日累加 == 其合计（防列错位/漏读，保持致命）
     for p in people:
         s = sum(e[p['name']] for e in daily)
         if s != p['actual']:
