@@ -819,6 +819,18 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
             <div id="bvTotalRemain" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:18px;font-weight:700;color:var(--green)">8,220,852</div>
           </div>
         </div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1;padding:14px 18px;border-radius:10px;background:rgba(74,144,226,0.08);border:1px solid rgba(74,144,226,0.2)">
+            <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">内部请款</div>
+            <div id="bvInnerPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:18px;font-weight:700;color:var(--blue)">—</div>
+            <div id="bvInnerCnt" style="font-size:10px;color:var(--text3);margin-top:2px"></div>
+          </div>
+          <div style="flex:1;padding:14px 18px;border-radius:10px;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2)">
+            <div style="font-size:11px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">外部请款</div>
+            <div id="bvOuterPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:18px;font-weight:700;color:var(--purple)">—</div>
+            <div id="bvOuterCnt" style="font-size:10px;color:var(--text3);margin-top:2px"></div>
+          </div>
+        </div>
         <div>
           <div style="display:flex;justify-content:space-between;margin-bottom:6px">
             <span style="font-size:12px;color:var(--text2)">预算使用进度</span>
@@ -6377,6 +6389,15 @@ function refreshKPIs() {
   document.getElementById('bvTotalBudget').textContent = totalBudget.toLocaleString();
   document.getElementById('bvTotalConsume').textContent = totalConsume.toLocaleString();
   document.getElementById('bvTotalRemain').textContent = remain.toLocaleString();
+  // 内部/外部 请款（按订单备注区分，取自当月订单）
+  const _ords = (typeof activeOrders !== 'undefined' && activeOrders) ? activeOrders : [];
+  const _sumPay = a => a.reduce((s, o) => s + (Number(o[O.PAY]) || 0), 0);
+  const _inner = _ords.filter(o => o[O.NOTE] === '内部');
+  const _outer = _ords.filter(o => o[O.NOTE] === '外部');
+  document.getElementById('bvInnerPay').textContent = '¥' + _sumPay(_inner).toLocaleString();
+  document.getElementById('bvInnerCnt').textContent = _inner.length + ' 笔';
+  document.getElementById('bvOuterPay').textContent = '¥' + _sumPay(_outer).toLocaleString();
+  document.getElementById('bvOuterCnt').textContent = _outer.length + ' 笔';
   document.getElementById('bvProgressLabel').textContent = `${consumeRate.toFixed(2)}% / 100%`;
   document.getElementById('bvProgressBar').style.width = Math.min(consumeRate, 100).toFixed(2) + '%';
 
