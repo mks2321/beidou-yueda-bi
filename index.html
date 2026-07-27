@@ -5745,7 +5745,7 @@ function renderBizCollect() {
     ['bizTarget','bizCollect','bizRate','bizGap'].forEach(id => document.getElementById(id).textContent = '—');
     document.getElementById('bizCollectDesc').textContent = '待接入数据源';
   }
-  // 内部/外部 请款 + 投放人请款（取自当月订单）
+  // 内部/外部 请款（取自当月订单）
   const ords = (typeof activeOrders !== 'undefined' && activeOrders) ? activeOrders : [];
   const sumPay = a => a.reduce((s, o) => s + (Number(o[O.PAY]) || 0), 0);
   const inner = ords.filter(o => o[O.NOTE] === '内部'), outer = ords.filter(o => o[O.NOTE] === '外部');
