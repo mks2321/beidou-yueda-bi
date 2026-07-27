@@ -333,14 +333,14 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       <div class="nav-sub-item" onclick="switchBudgetSub('orders',this)">订单流水</div>
       <div class="nav-sub-item" onclick="switchBudgetSub('coop',this)">合作方式分析</div>
     </div>
-    <div class="nav-item" onclick="switchPage('review',this)">
-      <span class="nav-icon">&#128203;</span>
-      <span class="nav-label">月度复盘</span>
-      <span class="nav-dot"></span>
-    </div>
     <div class="nav-item" onclick="switchPage('bizcollect',this)">
       <span class="nav-icon">&#129534;</span>
       <span class="nav-label">商务收款</span>
+      <span class="nav-dot"></span>
+    </div>
+    <div class="nav-item" onclick="switchPage('review',this)">
+      <span class="nav-icon">&#128203;</span>
+      <span class="nav-label">月度复盘</span>
       <span class="nav-dot"></span>
     </div>
   </div>
@@ -1120,49 +1120,10 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
 <!-- ═══ PAGE: 商务收款 ═══ -->
 <div class="page" id="page-bizcollect">
   <div class="section-title">商务收款</div>
-  <div class="section-sub"><span id="bizMonthLabel">2026年7月</span> · 商务收款目标达成与请款结构</div>
-
-  <div class="kpi-grid kpi-grid-4">
-    <div class="kpi-card" style="--kc:var(--gold)">
-      <div class="icon">&#127919;</div>
-      <div class="kpi-label">收款目标</div>
-      <div class="kpi-val" id="bizTarget">—</div>
-      <div class="kpi-desc">本月商务收款目标</div>
-    </div>
-    <div class="kpi-card" style="--kc:var(--green)">
-      <div class="icon">&#128176;</div>
-      <div class="kpi-label">已收款</div>
-      <div class="kpi-val" id="bizCollect">—</div>
-      <div class="kpi-desc" id="bizCollectDesc">—</div>
-    </div>
-    <div class="kpi-card" style="--kc:var(--blue)">
-      <div class="icon">&#128200;</div>
-      <div class="kpi-label">达成率</div>
-      <div class="kpi-val" id="bizRate">—</div>
-      <div class="kpi-desc">已收款 / 目标</div>
-    </div>
-    <div class="kpi-card" style="--kc:var(--red)">
-      <div class="icon">&#9203;</div>
-      <div class="kpi-label">缺口</div>
-      <div class="kpi-val" id="bizGap">—</div>
-      <div class="kpi-desc">距目标还差</div>
-    </div>
-  </div>
+  <div class="section-sub">数据表格待接入</div>
 
   <div class="card">
-    <div class="card-title">内部 / 外部 请款</div>
-    <div style="display:flex;gap:16px">
-      <div style="flex:1;padding:18px;border-radius:12px;background:rgba(74,144,226,0.08);border:1px solid rgba(74,144,226,0.2)">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">内部请款</div>
-        <div id="bizInnerPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:24px;font-weight:700;color:var(--blue)">—</div>
-        <div id="bizInnerCnt" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
-      </div>
-      <div style="flex:1;padding:18px;border-radius:12px;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2)">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">外部请款</div>
-        <div id="bizOuterPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:24px;font-weight:700;color:var(--purple)">—</div>
-        <div id="bizOuterCnt" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
-      </div>
-    </div>
+    <div style="padding:60px 20px;text-align:center;color:var(--text3);font-size:14px">内容待接入 —— 表格准备好后补充到这里</div>
   </div>
 </div>
 
@@ -5730,29 +5691,7 @@ const pageTitles = {
 
 function renderBizCollect() {
   window._bizcollectDone = true;
-  const yuan = n => '¥' + Math.round(n).toLocaleString();
-  const BIZ = { '7月': { collect: 9678627, target: 25000000 } };
-  const b = BIZ[currentMonth];
-  const cfg = monthConfigs[currentMonth];
-  document.getElementById('bizMonthLabel').textContent = (cfg && cfg.label) || currentMonth;
-  if (b) {
-    document.getElementById('bizTarget').textContent = yuan(b.target);
-    document.getElementById('bizCollect').textContent = yuan(b.collect);
-    document.getElementById('bizCollectDesc').textContent = '目标 ' + yuan(b.target);
-    document.getElementById('bizRate').textContent = (b.collect / b.target * 100).toFixed(1) + '%';
-    document.getElementById('bizGap').textContent = yuan(Math.max(0, b.target - b.collect));
-  } else {
-    ['bizTarget','bizCollect','bizRate','bizGap'].forEach(id => document.getElementById(id).textContent = '—');
-    document.getElementById('bizCollectDesc').textContent = '待接入数据源';
-  }
-  // 内部/外部 请款（取自当月订单）
-  const ords = (typeof activeOrders !== 'undefined' && activeOrders) ? activeOrders : [];
-  const sumPay = a => a.reduce((s, o) => s + (Number(o[O.PAY]) || 0), 0);
-  const inner = ords.filter(o => o[O.NOTE] === '内部'), outer = ords.filter(o => o[O.NOTE] === '外部');
-  document.getElementById('bizInnerPay').textContent = yuan(sumPay(inner));
-  document.getElementById('bizInnerCnt').textContent = inner.length + ' 笔';
-  document.getElementById('bizOuterPay').textContent = yuan(sumPay(outer));
-  document.getElementById('bizOuterCnt').textContent = outer.length + ' 笔';
+  // 页面内容待接入（用户稍后提供表格）
 }
 
 function switchPage(id, el) {
