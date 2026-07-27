@@ -1149,25 +1149,19 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
     </div>
   </div>
 
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">内部 / 外部 请款</div>
-      <div style="display:flex;gap:16px">
-        <div style="flex:1;padding:18px;border-radius:12px;background:rgba(74,144,226,0.08);border:1px solid rgba(74,144,226,0.2)">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">内部请款</div>
-          <div id="bizInnerPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:24px;font-weight:700;color:var(--blue)">—</div>
-          <div id="bizInnerCnt" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
-        </div>
-        <div style="flex:1;padding:18px;border-radius:12px;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2)">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">外部请款</div>
-          <div id="bizOuterPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:24px;font-weight:700;color:var(--purple)">—</div>
-          <div id="bizOuterCnt" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
-        </div>
+  <div class="card">
+    <div class="card-title">内部 / 外部 请款</div>
+    <div style="display:flex;gap:16px">
+      <div style="flex:1;padding:18px;border-radius:12px;background:rgba(74,144,226,0.08);border:1px solid rgba(74,144,226,0.2)">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">内部请款</div>
+        <div id="bizInnerPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:24px;font-weight:700;color:var(--blue)">—</div>
+        <div id="bizInnerCnt" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-title">投放人请款 TOP</div>
-      <div class="tbl-wrap"><table><thead><tr><th>投放人</th><th>请款金额</th><th>笔数</th></tr></thead><tbody id="bizOpTable"></tbody></table></div>
+      <div style="flex:1;padding:18px;border-radius:12px;background:rgba(155,109,255,0.08);border:1px solid rgba(155,109,255,0.2)">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">外部请款</div>
+        <div id="bizOuterPay" style="font-family:'JetBrains Mono','SF Mono','Roboto Mono',ui-monospace,monospace;font-size:24px;font-weight:700;color:var(--purple)">—</div>
+        <div id="bizOuterCnt" style="font-size:11px;color:var(--text3);margin-top:4px"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -5759,11 +5753,6 @@ function renderBizCollect() {
   document.getElementById('bizInnerCnt').textContent = inner.length + ' 笔';
   document.getElementById('bizOuterPay').textContent = yuan(sumPay(outer));
   document.getElementById('bizOuterCnt').textContent = outer.length + ' 笔';
-  const byOp = {};
-  ords.forEach(o => { const op = o[O.OP] || '—'; if (!byOp[op]) byOp[op] = { pay: 0, cnt: 0 }; byOp[op].pay += Number(o[O.PAY]) || 0; byOp[op].cnt++; });
-  const rows = Object.entries(byOp).sort((a, b) => b[1].pay - a[1].pay);
-  document.getElementById('bizOpTable').innerHTML = rows.map(([op, v]) =>
-    `<tr><td>${op}</td><td>${yuan(v.pay)}</td><td>${v.cnt}</td></tr>`).join('');
 }
 
 function switchPage(id, el) {
