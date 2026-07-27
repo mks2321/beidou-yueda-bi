@@ -988,6 +988,10 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
         <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;">日期</div>
         <select id="filterDate" onchange="renderOrders()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;"><option value="">全部</option></select>
       </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);letter-spacing:0.08em;margin-bottom:4px;text-transform:uppercase;">备注</div>
+        <select id="filterNote" onchange="renderOrders()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12px;font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;"><option value="">全部</option></select>
+      </div>
     </div>
   </div>
 
@@ -7029,7 +7033,7 @@ function renderDailyExp() {
 // ║  订单流水（方案A-1）                                        ║
 // ╚════════════════════════════════════════════════════════════╝
 // orders 数组字段索引
-const O = { DATE:0, APP:1, TYPE:2, CHANNEL:3, OP:4, COOP:5, REQ:6, NEW:7, RECHARGE:8, PAY:9 };
+const O = { DATE:0, APP:1, TYPE:2, CHANNEL:3, OP:4, COOP:5, REQ:6, NEW:7, RECHARGE:8, PAY:9, NOTE:10 };
 let ordersDateChart = null, ordersAppChart = null, ordersCoopChart = null;
 
 function initOrdersFilters() {
@@ -7045,6 +7049,7 @@ function initOrdersFilters() {
   // 日期排序：按真实日期
   const dates = unique(O.DATE).sort((a,b) => new Date(a) - new Date(b));
   fill('filterDate', dates);
+  fill('filterNote', unique(O.NOTE));
 }
 
 function renderOrders() {
@@ -7055,13 +7060,15 @@ function renderOrders() {
     coop:document.getElementById('filterCoop').value,
     req: document.getElementById('filterReqType').value,
     date:document.getElementById('filterDate').value,
+    note:document.getElementById('filterNote').value,
   };
   const filtered = activeOrders.filter(o =>
     (!f.app || o[O.APP] === f.app) &&
     (!f.op  || o[O.OP]  === f.op) &&
     (!f.coop || o[O.COOP] === f.coop) &&
     (!f.req || o[O.REQ] === f.req) &&
-    (!f.date || o[O.DATE] === f.date)
+    (!f.date || o[O.DATE] === f.date) &&
+    (!f.note || o[O.NOTE] === f.note)
   );
 
   // 汇总 stat row

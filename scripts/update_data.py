@@ -140,8 +140,9 @@ def build_orders(rows):
     for r in rows[1:]:
         if len(r) < 14 or not r[1].strip():
             continue
+        note = r[17].strip() if len(r) > 17 else ''   # 备注列：内部/外部
         out.append([r[1].strip(), r[2].strip(), r[3].strip(), r[4].strip(), r[5].strip(),
-                    r[6].strip(), r[7].strip(), num(r[9]), num(r[12]), num(r[13])])
+                    r[6].strip(), r[7].strip(), num(r[9]), num(r[12]), num(r[13]), note])
     return out
 
 # ---------- 产品 ----------
