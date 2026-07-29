@@ -6454,7 +6454,7 @@ function refreshKPIs() {
     document.getElementById('ovRechargeDesc').textContent = '待接入数据源';
   }
   // 商务收款：用户提供的固定值（按月）。目前仅 7 月有数，其它月份留空。
-  const BIZ_COLLECT = { '7月': { collect: 9678627, target: 25000000 } };
+  const BIZ_COLLECT = { '7月': { collect: 21776013, target: 25000000 } };
   const _biz = BIZ_COLLECT[currentMonth];
   if (_biz) {
     document.getElementById('ovCollectTotal').textContent = M(_biz.collect);
