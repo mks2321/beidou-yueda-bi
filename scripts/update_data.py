@@ -265,10 +265,13 @@ def parse_paid_new(rows, tb, mlabel, dprefix):
         rsum = sum(x[3] for x in daily)
         if rsum != recharge:
             print(f'[WARN] 收费产品 {code} 每日总充值和 {rsum} != VIP+金币 {recharge}（表内不一致，看板不用此值，跳过）')
-        if code not in tb:
-            sys.exit(f'[ERROR] 收费产品 {code}({r[1].strip()}) 在原表找不到目标/预算')
-        target, budget, origname = tb[code]
-        nm = map_name(origname, PAID_MAP)   # 用原表名保持看板命名一致
+        if code in tb:
+            target, budget, origname = tb[code]
+        else:
+            # 新产品尚未加入目标预算表：暂记 0，不中止更新（补入 1MpRa 后自动生效）
+            print(f'[WARN] 收费产品 {code}({r[1].strip()}) 目标表暂无目标/预算，暂记0')
+            target, budget, origname = 0, 0, r[1].strip()
+        nm = map_name(origname, PAID_MAP)   # 用目标表名保持看板命名一致
         comp = round(total/target*100, 2) if target > 0 else 0
         crate = round(consume/budget*100, 2) if budget > 0 else 0
         cpa = round(consume/total, 2) if total > 0 else 0
