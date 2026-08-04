@@ -9,15 +9,12 @@
 import csv, re, io, sys, urllib.request, subprocess, datetime
 
 SHEETS = {
-    # 个人（充值/盒子）：2026-07 起改用新表 1M3-...
-    'charge': ('1M3-Jtwos2hujBVsl9WwzqMzog1i1RugCo4hBh1mK3sY', '0'),
-    'box':    ('1M3-Jtwos2hujBVsl9WwzqMzog1i1RugCo4hBh1mK3sY', '174527901'),
-    'orders': ('1mob_aU-Y4v-jycMFjLSQekEwEISrI92Z6KTpW5Nb0D4', '0'),  # 7月订单/请款流水
-    # 收费产品：每日明细+总数 来自新表 1EjN(按月分区)；目标/预算 来自 7月产品目标表 1MpRa(按产品编号关联)
-    'prodPD': ('1EjN4Mg3K_dxJwiZhU_BleCtk3cYgxFpW3wpEfck22bI', '0'),
-    'prodTB': ('1MpRaGywYplqHzUiCzT2ecp5WBKeih4xHgouc7XNNoEQ', '0'),
-    # 免费产品：7月表 1MpRa 的免费APP页（旧格式，含每日+目标+预算）
-    'prodPF': ('1MpRaGywYplqHzUiCzT2ecp5WBKeih4xHgouc7XNNoEQ', '1210097737'),
+    # 个人（充值/盒子）：2026-08 起改用新表 1EeFxGu...
+    'charge': ('1EeFxGu6gOrERZ0RYw6ZYRN_qhWslvp44bkGt47BlJdA', '0'),
+    'box':    ('1EeFxGu6gOrERZ0RYw6ZYRN_qhWslvp44bkGt47BlJdA', '700729194'),
+    'orders': ('1shq9fF7r7r5WhywOPA2yJ4bpVstQQC0e2VTWWk2kqmw', '0'),  # 8月订单/请款流水
+    # 收费+免费产品：一张老格式表 1vpnLn，两段(8月-收费APP / 8月-免费盒子)，含目标+预算+每日
+    'prodAll': ('1vpnLnkImRRr6EPMlGgLlTvTFvcNMOzjbto--qbBM0ss', '0'),
 }
 
 def fetch(key):
@@ -53,8 +50,10 @@ def norm(s):
 CHARGE_NAMES = {norm(a): b for a, b in [
     ('马奎斯','马奎斯'),('李漫妮','李漫妮'),('赵尘','赵尘'),('范玮琪','范玮琪'),('王勃','王勃'),
     ('双喜 / 聂淮序','双喜/聂淮序'),('聂淮序','双喜/聂淮序'),('张伟','张伟'),('渠道中心','渠道中心'),
-    ('无极导量','无极导量'),('内部导量','内部导量')]}
-BOX_NAMES = {norm(a): b for a, b in [('张伟 (金予)','张伟(金予)'), ('金予','张伟(金予)'), ('尹森','尹森'), ('徐晃','徐晃')]}
+    ('无极导量','无极导量'),('内部导量','内部导量'),
+    ('尹森','尹森(收费)'),('徐晃','徐晃(收费)')]}   # 8月起尹森/徐晃进收费个人表，与免费拆开
+BOX_NAMES = {norm(a): b for a, b in [('张伟 (金予)','张伟(金予)'), ('金予','张伟(金予)'),
+    ('尹森','尹森(免费)'),('徐晃','徐晃(免费)')]}   # 8月盒子=免费渠道人员
 
 def parse_personal(rows, name_map, mlabel):
     namerow = rows[0]
@@ -90,25 +89,19 @@ def parse_personal(rows, name_map, mlabel):
 def build_personal(charge, box, mlabel, dprefix):
     c_cols, c_tot, c_rtot, c_tgt, c_rate, c_total, c_days = parse_personal(charge, CHARGE_NAMES, mlabel)
     b_cols, b_tot, b_rtot, b_tgt, b_rate, b_total, b_days = parse_personal(box, BOX_NAMES, mlabel)
+    def exp_at(tot_row, ci):
+        return num(tot_row[ci+2]) if (tot_row and ci+2 < len(tot_row)) else 0
     people = []
     for nm, ci in c_cols:
-        people.append(dict(name=nm, target=num(c_tgt[ci]), actual=num(c_total[ci]),
-                           recharge=num(c_total[ci+1]), expense=num(c_total[ci+2]),
-                           completion=pct(c_rate[ci])))
+        people.append(dict(name=nm, target=num(c_tgt[ci]), expense=exp_at(c_total, ci)))
     for nm, ci in b_cols:
-        people.append(dict(name=nm, target=num(b_tgt[ci]), actual=num(b_total[ci]),
-                           recharge=num(b_total[ci+1]), expense=num(b_total[ci+2]),
-                           completion=pct(b_rate[ci])))
+        people.append(dict(name=nm, target=num(b_tgt[ci]), expense=exp_at(b_total, ci)))
     names = [p['name'] for p in people]
     daily = []
     for d in sorted(set(c_days) | set(b_days)):
         cr, br = c_days.get(d), b_days.get(d)
         ct = num(cr[c_tot]) if cr else 0
         bt = num(br[b_tot]) if br else 0
-        if ct == 0 and bt == 0:
-            continue
-        cr_rt = num(cr[c_rtot]) if (cr and c_rtot is not None) else 0
-        br_rt = num(br[b_rtot]) if (br and b_rtot is not None) else 0
         e = {'date': f'{dprefix}-{d:02d}', 'r': {}}
         for nm, ci in c_cols:
             e[nm] = num(cr[ci]) if cr else 0
@@ -116,22 +109,19 @@ def build_personal(charge, box, mlabel, dprefix):
         for nm, ci in b_cols:
             e[nm] = num(br[ci]) if br else 0
             e['r'][nm] = num(br[ci+1]) if br else 0
-        # 每日总计按各人之和自动计算（表内“新增总计/充值总计”列偶有填错或漏新人，不作准）
+        # 每日总计按各人之和自动计算（表内“新增总计”列偶有填错/漏新人，不作准）
         e['total'] = sum(e[n] for n in names)
         e['rtotal'] = sum(e['r'][n] for n in names)
-        if e['total'] != ct + bt:
+        if e['total'] == 0 and e['rtotal'] == 0:
+            continue   # 空日
+        if ct + bt and e['total'] != ct + bt:
             print(f'[WARN] 个人 {e["date"]} 人均之和 {e["total"]} != 表内新增总计 {ct + bt}（以人均之和为准）')
-        if e['rtotal'] != cr_rt + br_rt:
-            print(f'[WARN] 个人 {e["date"]} 充值人均之和 {e["rtotal"]} != 表内充值总计 {cr_rt + br_rt}（以人均之和为准）')
         daily.append(e)
-    # 校验：每人每日累加 == 其合计（防列错位/漏读，保持致命）
+    # 每人 actual/recharge/completion 由每日累加得出（月初“合计”行常未按人填）
     for p in people:
-        s = sum(e[p['name']] for e in daily)
-        if s != p['actual']:
-            sys.exit(f'[ERROR] 个人 {p["name"]} 累加 {s} != actual {p["actual"]}')
-        rsum = sum(e['r'][p['name']] for e in daily)
-        if rsum != p['recharge']:
-            sys.exit(f'[ERROR] 个人 {p["name"]} 充值累加 {rsum} != recharge {p["recharge"]}')
+        p['actual'] = sum(e[p['name']] for e in daily)
+        p['recharge'] = sum(e['r'][p['name']] for e in daily)
+        p['completion'] = round(p['actual'] / p['target'] * 100, 2) if p['target'] > 0 else 0
     return people, daily, names
 
 # ---------- 订单 ----------
@@ -280,16 +270,58 @@ def parse_paid_new(rows, tb, mlabel, dprefix):
                         daily=[(f'{dprefix}-{dd:02d}', nv, qv, rv) for dd, nv, qv, rv in daily]))
     return out
 
-def build_products(pd, tb_rows, pf, dprefix, mlabel):
-    tb = build_tb(tb_rows)
-    paid = parse_paid_new(pd, tb, mlabel, dprefix)
-    free = parse_products(pf, '免费', 5, 6, lambda d: 8+(d-1)*4, lambda d: 10+(d-1)*4, None, None, dprefix)
-    allp = paid + free
-    for p in allp:
-        s = sum(x[1] for x in p['daily'])
-        if s != p['total']:
-            sys.exit(f'[ERROR] 产品 {p["name"]} daily和 {s} != total {p["total"]}')
-    return allp
+def parse_month_section(rows, label, typ, dprefix):
+    """当月老格式产品表的一段(收费/免费)。列: [2]目标 [4]开支预算 [5]总新增 [9]总请款；
+       每日7列块从[10]起：新增[10]，请款[16]，充值列(收费[14]/免费[15])。跳过前导空日。"""
+    start = None
+    for i, r in enumerate(rows):
+        if r and norm(r[0]) == norm(label):
+            start = i + 2   # 跳过段标题行 + 子表头行
+            break
+    if start is None:
+        sys.exit(f'[ERROR] 产品表找不到段 “{label}”')
+    rc_off = 14 if typ == '付费' else 15
+    mp = PAID_MAP if typ == '付费' else FREE_MAP
+    out = []
+    for r in rows[start:]:
+        code = r[0].strip() if r else ''
+        if not code.startswith('DX'):
+            break
+        nm = map_name(r[1].strip(), mp)
+        target = num(r[2]); budget = num(r[4]); total = num(r[5]); consume = num(r[9])
+        daily = []; w = [0, 0]; started = False
+        for d in range(1, 32):
+            nc = 10 + (d-1)*7
+            if nc >= len(r):
+                break
+            if (r[nc] or '').strip() in ('', '无数据'):
+                if started:
+                    break
+                continue
+            started = True
+            nv = num(r[nc])
+            qc = 16 + (d-1)*7
+            rc = rc_off + (d-1)*7
+            qv = num(r[qc]) if qc < len(r) else 0
+            rv = num(r[rc]) if rc < len(r) else 0
+            daily.append((d, nv, qv, rv))
+            if d <= 7: w[0] += nv
+            elif d <= 14: w[1] += nv
+        s = sum(x[1] for x in daily)
+        if s != total:
+            sys.exit(f'[ERROR] 产品 {nm}({code}) 每日新增和 {s} != 总新增 {total}')
+        comp = round(total/target*100, 2) if target > 0 else 0
+        crate = round(consume/budget*100, 2) if budget > 0 else 0
+        cpa = round(consume/total, 2) if total > 0 else 0
+        out.append(dict(name=nm, type=typ, target=target, budget=budget, w1=w[0], w2=w[1],
+                        total=total, consume=consume, completion=comp, consumeRate=crate, cpa=cpa,
+                        daily=[(f'{dprefix}-{dd:02d}', nv, qv, rv) for dd, nv, qv, rv in daily]))
+    return out
+
+def build_products(prod_rows, dprefix, mlabel):
+    paid = parse_month_section(prod_rows, f'{mlabel}-收费APP', '付费', dprefix)
+    free = parse_month_section(prod_rows, f'{mlabel}-免费盒子', '免费', dprefix)
+    return paid + free
 
 # ---------- JS 生成 ----------
 def js_people(people):
@@ -348,11 +380,11 @@ def main():
         sys.exit(f'[ERROR] monthConfigs 无当月键 {mlabel}，需手工建框架')
 
     charge = fetch('charge'); box = fetch('box'); orders_raw = fetch('orders')
-    pd = fetch('prodPD'); tb = fetch('prodTB'); pf = fetch('prodPF')
+    prod_all = fetch('prodAll')
 
     people, pdaily, names = build_personal(charge, box, mlabel, dprefix)
     ords = build_orders(orders_raw)
-    allp = build_products(pd, tb, pf, dprefix, mlabel)
+    allp = build_products(prod_all, dprefix, mlabel)
 
     # 当月块边界
     six = html.index(f"'{mlabel}': {{")

@@ -363,6 +363,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;cursor:pointer;outline:none;
       letter-spacing:0.05em;margin-right:4px;
     ">
+      <option value="8月">2026年8月</option>
       <option value="7月">2026年7月</option>
       <option value="6月">2026年6月</option>
       <option value="5月">2026年5月</option>
@@ -4194,6 +4195,8 @@ const ordersJun = [
 // ║              多月份数据 — 支持 4月/5月 切换                        ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
+const ordersAug = [];
+
 const ordersJul = [
   ['2026/7/2','Pornhub破解','免费','8zdSY8wQ','尹森','CPC','渠道续费',67,0,0,'外部'],
   ['2026/7/2','海角','收费','ugtxhjsq','聂淮旭','CPC','新开预付',22,0,1997.03,'外部'],
@@ -5284,6 +5287,25 @@ const ordersJul = [
 ];
 
 const monthConfigs = {
+  '8月': {
+    label: '2026年8月',
+    lastUpdated: '2026-08-04 00:00',
+    products: [
+
+    ],
+    dailyData: {
+
+    },
+    personalData: {
+      people: [
+
+      ],
+      daily: [
+
+      ]
+    },
+    orders: ordersAug
+  },
   '7月': {
     label: '2026年7月',
     lastUpdated: '2026-08-01 15:07',
@@ -5615,7 +5637,7 @@ const _wlActive = () => Array.isArray(productWhitelist) && productWhitelist.leng
 const wlProducts = arr => _wlActive() ? (arr || []).filter(p => productWhitelist.includes(p.name)) : arr;
 const wlDaily = obj => { if (!_wlActive() || !obj) return obj; const o = {}; for (const k in obj) if (productWhitelist.includes(k)) o[k] = obj[k]; return o; };
 
-let currentMonth = '7月';
+let currentMonth = '8月';
 let products = wlProducts(monthConfigs[currentMonth].products);
 let dailyData = wlDaily(monthConfigs[currentMonth].dailyData);
 let activeOrders = monthConfigs[currentMonth].orders;
