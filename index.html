@@ -336,6 +336,11 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       <div class="nav-sub-item" onclick="switchBudgetSub('orders',this)">订单流水</div>
       <div class="nav-sub-item" onclick="switchBudgetSub('coop',this)">合作方式分析</div>
     </div>
+    <div class="nav-item" onclick="switchPage('channel',this)">
+      <span class="nav-icon">&#128279;</span>
+      <span class="nav-label">渠道码分析</span>
+      <span class="nav-dot"></span>
+    </div>
     <div class="nav-item" onclick="switchPage('bizcollect',this)">
       <span class="nav-icon">&#129534;</span>
       <span class="nav-label">商务收款</span>
@@ -1126,6 +1131,63 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
 
 <!-- ═══ PAGE 5: 月度复盘 ═══ -->
 <!-- ═══ PAGE: 商务收款 ═══ -->
+<div class="page" id="page-channel">
+  <div class="section-title">渠道码分析</div>
+  <div class="section-sub">新开供应商 / 新开渠道码 / 免费·付费新增拆分 &nbsp;·&nbsp; 数据源：渠道管理系统 &nbsp;·&nbsp; <span id="chUpdated">—</span></div>
+
+  <div class="kpi-grid kpi-grid-5" id="chKPI"></div>
+
+  <div class="card">
+    <div class="card-title">每日新增 · 免费类 vs 付费类</div>
+    <div style="height:300px;position:relative"><canvas id="chDailyChart"></canvas></div>
+  </div>
+
+  <div class="kpi-grid kpi-grid-3" style="margin-top:4px">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">免费 / 付费拆分</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>分类</th><th>渠道码</th><th>新增</th><th>占比</th><th>消耗</th><th>单新增</th></tr></thead>
+        <tbody id="chSplitTable"></tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px" id="chSubSplit"></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">新 / 老供应商拆分</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>来源</th><th>渠道码</th><th>新增</th><th>占比</th><th>消耗</th><th>单新增</th></tr></thead>
+        <tbody id="chSupTable"></tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px" id="chSupNote"></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">供应商状态</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>状态</th><th>家数</th><th>占比</th></tr></thead>
+        <tbody id="chSupStatus"></tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px" id="chCodeNote"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">按组员</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>组员</th><th>新开供应商</th><th>新开码</th><th>有量码</th><th>新增</th><th>免费类</th><th>付费类</th><th>消耗</th><th>单新增成本</th></tr></thead>
+      <tbody id="chMemberTable"></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">口径说明</div>
+    <div style="font-size:12px;color:var(--text2);line-height:2">
+      渠道码口径为投放分配单创建时间落在当月的全部码；新增 / 消耗 / 充值取自 BI 渠道明细。<br>
+      免费类 = 免费产品 + 半收费产品，付费类 = 收费产品。<br>
+      CPT（按时长买断）的消耗在宽表中按计费周期逐日重复写入，脚本已做「每码只计一次」处理，不按天累加。<br>
+      当日数据通常次日落表，因此统计区间末日一般为昨天。
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-bizcollect">
   <div class="section-title">商务收款</div>
   <div class="section-sub">数据表格待接入</div>
@@ -6317,6 +6379,89 @@ const ordersJul = [
   ['2026/7/25','萝莉岛','收费','ug-xiaohualld','聂淮旭','CPT','数据结算',450,1450,1038.83,'外部']
 ];
 
+// ===== 渠道码分析数据（由 scripts/update_channel.py 每日重建，勿手改）=====
+const channelData = {
+  updated: '2026-08-24 19:37',
+  period: {
+    start: '2026-08-01',
+    end: '2026-08-23',
+    days: 23
+  },
+  suppliers: {
+    total: 158,
+    withCode: 155,
+    withVolume: 131,
+    status: [
+      { name: '合作中', count: 138 },
+      { name: '待测试', count: 14 },
+      { name: '终止合作', count: 5 },
+      { name: '测试中', count: 1 }
+    ]
+  },
+  codes: {
+    total: 706,
+    active: 535,
+    zero: 171,
+    closed: 155
+  },
+  totals: {
+    add: 640738,
+    cost: 969720.53,
+    recharge: 279158,
+    rechargeUsers: 1473
+  },
+  split: [
+    { name: '免费类', codes: 220, active: 186, zero: 34, closed: 40, add: 366871, cost: 361216.35, recharge: 58, rechargeUsers: 3 },
+    { name: '付费类', codes: 486, active: 349, zero: 137, closed: 115, add: 273867, cost: 608504.18, recharge: 279100, rechargeUsers: 1470 }
+  ],
+  subSplit: [
+    { name: '纯免费', codes: 101, active: 88, zero: 13, closed: 22, add: 226739, cost: 259415.13, recharge: 58, rechargeUsers: 3 },
+    { name: '半收费', codes: 119, active: 98, zero: 21, closed: 18, add: 140132, cost: 101801.23, recharge: 0, rechargeUsers: 0 }
+  ],
+  supplierSplit: [
+    { name: '新供应商', codes: 467, active: 348, zero: 119, closed: 81, add: 380969, cost: 834197.62, recharge: 146208, rechargeUsers: 765 },
+    { name: '老供应商', codes: 239, active: 187, zero: 52, closed: 74, add: 259769, cost: 135522.91, recharge: 132950, rechargeUsers: 708 }
+  ],
+  daily: [
+    { d: '08-01', free: 0, paid: 2701 },
+    { d: '08-02', free: 62, paid: 5039 },
+    { d: '08-03', free: 774, paid: 7692 },
+    { d: '08-04', free: 6779, paid: 9442 },
+    { d: '08-05', free: 11326, paid: 12679 },
+    { d: '08-06', free: 10181, paid: 11145 },
+    { d: '08-07', free: 10238, paid: 10070 },
+    { d: '08-08', free: 11352, paid: 6429 },
+    { d: '08-09', free: 12835, paid: 6735 },
+    { d: '08-10', free: 9932, paid: 6660 },
+    { d: '08-11', free: 12083, paid: 7729 },
+    { d: '08-12', free: 13510, paid: 11023 },
+    { d: '08-13', free: 14853, paid: 13810 },
+    { d: '08-14', free: 16196, paid: 13622 },
+    { d: '08-15', free: 18205, paid: 14521 },
+    { d: '08-16', free: 24467, paid: 14555 },
+    { d: '08-17', free: 26011, paid: 15229 },
+    { d: '08-18', free: 29467, paid: 18416 },
+    { d: '08-19', free: 28510, paid: 17394 },
+    { d: '08-20', free: 30791, paid: 17638 },
+    { d: '08-21', free: 31901, paid: 17198 },
+    { d: '08-22', free: 24023, paid: 16895 },
+    { d: '08-23', free: 23375, paid: 17245 }
+  ],
+  members: [
+    { name: '尹森', suppliers: 35, codes: 270, active: 238, add: 314565, free: 255562, paid: 59003, cost: 69921.96 },
+    { name: '范玮琪', suppliers: 14, codes: 61, active: 45, add: 101180, free: 0, paid: 101180, cost: 43476.74 },
+    { name: '罗冰', suppliers: 17, codes: 55, active: 42, add: 76062, free: 76062, paid: 0, cost: 115284.45 },
+    { name: '聂淮旭', suppliers: 33, codes: 119, active: 76, add: 41030, free: 0, paid: 41030, cost: 23650.33 },
+    { name: '徐晃', suppliers: 14, codes: 54, active: 28, add: 37058, free: 35247, paid: 1811, cost: 185462.55 },
+    { name: '李漫妮', suppliers: 6, codes: 11, active: 7, add: 33450, free: 0, paid: 33450, cost: 372535 },
+    { name: '赵尘', suppliers: 12, codes: 33, active: 25, add: 23165, free: 0, paid: 23165, cost: 147773.24 },
+    { name: '王勃', suppliers: 16, codes: 75, active: 57, add: 9733, free: 0, paid: 9733, cost: 10821.61 },
+    { name: '马奎斯', suppliers: 7, codes: 23, active: 16, add: 4494, free: 0, paid: 4494, cost: 727.25 },
+    { name: '李蓓蓓', suppliers: 3, codes: 5, active: 1, add: 1, free: 0, paid: 1, cost: 67.4 },
+    { name: '未分配', suppliers: 1, codes: 0, active: 0, add: 0, free: 0, paid: 0, cost: 0 }
+  ]
+};
+
 const monthConfigs = {
   '8月': {
     label: '2026年8月',
@@ -6811,7 +6956,7 @@ function switchMonth(month) {
 const pageTitles = {
   overview:'项目概览', product:'产品投放', personal:'个人投放进度', budget:'预算与支出', review:'月度复盘',
   daily3:'每日明细', compare:'产品投放数据对比', strategy:'投放策略', dailyexp:'每日支出', orders:'订单流水', coop:'合作方式分析',
-  bizcollect:'商务收款'
+  bizcollect:'商务收款', channel:'渠道码分析'
 };
 
 function renderBizCollect() {
@@ -6852,6 +6997,7 @@ function switchPage(id, el) {
   if (id === 'dailyexp' && !window._dailyExpDone) { initDailyExpSelect(); renderDailyExp(); }
   if (id === 'orders' && !window._ordersDone)   { initOrdersFilters(); renderOrders(); }
   if (id === 'coop'   && !window._coopDone)     renderCoop();
+  if (id === 'channel' && !window._channelDone) renderChannel();
 }
 
 // 子导航切换
@@ -8388,6 +8534,120 @@ function renderOrders() {
 // ╔════════════════════════════════════════════════════════════╗
 // ║  合作方式分析（方案A-2）                                     ║
 // ╚════════════════════════════════════════════════════════════╝
+// ===================== 渠道码分析 =====================
+function renderChannel() {
+  window._channelDone = true;
+  const D = channelData;
+  const nf = n => (n||0).toLocaleString();
+  const money = n => '¥' + Math.round(n||0).toLocaleString();
+
+  if (!D || !D.codes || !D.codes.total) {
+    document.getElementById('chUpdated').textContent = '数据未同步';
+    document.getElementById('chKPI').innerHTML =
+      '<div class="card" style="grid-column:1/-1;padding:50px;text-align:center;color:var(--text3)">暂无数据 —— 等待 Daily Data Update 首次同步</div>';
+    return;
+  }
+
+  document.getElementById('chUpdated').textContent =
+    '统计区间 ' + D.period.start + ' 至 ' + D.period.end + '（' + D.period.days + ' 天）· 更新于 ' + D.updated;
+
+  const dayAvg = D.period.days ? Math.round(D.totals.add / D.period.days) : 0;
+  const last7 = D.daily.slice(-7);
+  const l7avg = last7.length ? Math.round(last7.reduce((s,x)=>s+x.free+x.paid,0)/last7.length) : 0;
+  const cpa = D.totals.add ? (D.totals.cost / D.totals.add) : 0;
+
+  document.getElementById('chKPI').innerHTML = [
+    ['新开供应商', nf(D.suppliers.total) + ' 家', D.suppliers.withCode + ' 家已开码 · ' + D.suppliers.withVolume + ' 家有量', 'var(--gold)'],
+    ['新开渠道码', nf(D.codes.total) + ' 个', D.codes.active + ' 个有量 · ' + D.codes.zero + ' 个零新增 · ' + D.codes.closed + ' 个停线', '#4a90e2'],
+    ['总新增', nf(D.totals.add), '日均 ' + nf(dayAvg) + ' · 近7天日均 ' + nf(l7avg), '#3ecf8e'],
+    ['总消耗', money(D.totals.cost), '充值回收 ' + money(D.totals.recharge), '#f5a623'],
+    ['单新增成本', '¥' + cpa.toFixed(2), '充值人数 ' + nf(D.totals.rechargeUsers), '#9b59b6']
+  ].map(function(k){
+    return '<div class="kpi-card" style="--kc:' + k[3] + '">' +
+      '<div class="kpi-label">' + k[0] + '</div>' +
+      '<div class="kpi-val" style="color:' + k[3] + '">' + k[1] + '</div>' +
+      '<div class="kpi-desc">' + k[2] + '</div></div>';
+  }).join('');
+
+  // 每日新增折线
+  var ctx = document.getElementById('chDailyChart');
+  if (window._chDailyChart) window._chDailyChart.destroy();
+  window._chDailyChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: D.daily.map(function(x){return x.d;}),
+      datasets: [
+        { label:'免费类', data: D.daily.map(function(x){return x.free;}),
+          borderColor:'#3ecf8e', backgroundColor:'rgba(62,207,142,0.12)', borderWidth:2, fill:true, tension:0.3, pointRadius:2 },
+        { label:'付费类', data: D.daily.map(function(x){return x.paid;}),
+          borderColor:'#4a90e2', backgroundColor:'rgba(74,144,226,0.10)', borderWidth:2, fill:true, tension:0.3, pointRadius:2 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ labels:{ color:'#8892aa', font:defaultFont, usePointStyle:true } },
+        tooltip:{ callbacks:{ footer: function(items){
+          var t=0; items.forEach(function(i){t+=i.raw;}); return '合计 ' + t.toLocaleString();
+        } } }
+      },
+      scales:{
+        x:{ ticks:{ color:'#8892aa', font:defaultFont }, grid:{ color:'rgba(255,255,255,0.04)' } },
+        y:{ beginAtZero:true, ticks:{ color:'#8892aa', font:defaultFont, callback:function(v){return v>=1000?(v/1000)+'k':v;} }, grid:{ color:'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+
+  function rows(arr, colorMap) {
+    var tot = arr.reduce(function(s,x){return s+x.add;},0) || 1;
+    return arr.map(function(x){
+      var c = colorMap[x.name] || 'var(--gold)';
+      return '<tr>' +
+        '<td><span class="badge" style="background:'+c+'22;color:'+c+';border:1px solid '+c+'55">'+x.name+'</span></td>' +
+        '<td>'+nf(x.codes)+'</td>' +
+        '<td class="c-green">'+nf(x.add)+'</td>' +
+        '<td>'+(x.add/tot*100).toFixed(1)+'%</td>' +
+        '<td class="c-amber">'+money(x.cost)+'</td>' +
+        '<td>¥'+(x.add? (x.cost/x.add):0).toFixed(2)+'</td></tr>';
+    }).join('');
+  }
+  document.getElementById('chSplitTable').innerHTML = rows(D.split, {'免费类':'#3ecf8e','付费类':'#4a90e2'});
+  document.getElementById('chSupTable').innerHTML  = rows(D.supplierSplit, {'新供应商':'#f5a623','老供应商':'#9b59b6'});
+
+  document.getElementById('chSubSplit').innerHTML = D.subSplit.map(function(x){
+    return x.name + ' ' + x.codes + ' 码，新增 ' + nf(x.add) + '，单新增 ¥' + (x.add? (x.cost/x.add):0).toFixed(2);
+  }).join('；');
+
+  var sp = D.split.find(function(x){return x.name==='付费类';});
+  document.getElementById('chSupNote').textContent = sp
+    ? '付费类充值 ' + money(sp.recharge) + '、' + nf(sp.rechargeUsers) + ' 人，回收比 ' + (sp.cost? (sp.recharge/sp.cost):0).toFixed(2)
+    : '';
+
+  var totS = D.suppliers.total || 1;
+  document.getElementById('chSupStatus').innerHTML = D.suppliers.status.map(function(s){
+    return '<tr><td>'+s.name+'</td><td>'+s.count+'</td><td>'+(s.count/totS*100).toFixed(1)+'%</td></tr>';
+  }).join('');
+  document.getElementById('chCodeNote').textContent =
+    '渠道码：投放中 ' + (D.codes.total - D.codes.closed) + ' · 已停线 ' + D.codes.closed + ' · 零新增 ' + D.codes.zero;
+
+  var mtot = D.members.reduce(function(s,m){return s+m.add;},0) || 1;
+  document.getElementById('chMemberTable').innerHTML = D.members.map(function(m){
+    var c = m.add ? m.cost/m.add : 0;
+    var cls = c<=1 ? 'c-green' : (c<=5 ? 'c-amber' : 'c-red');
+    return '<tr>' +
+      '<td><b>'+m.name+'</b></td>' +
+      '<td>'+nf(m.suppliers)+'</td>' +
+      '<td>'+nf(m.codes)+'</td>' +
+      '<td>'+nf(m.active)+'</td>' +
+      '<td class="c-green">'+nf(m.add)+' <span style="color:var(--text3);font-size:11px">'+(m.add/mtot*100).toFixed(1)+'%</span></td>' +
+      '<td>'+nf(m.free)+'</td>' +
+      '<td>'+nf(m.paid)+'</td>' +
+      '<td class="c-amber">'+money(m.cost)+'</td>' +
+      '<td class="'+cls+'">¥'+c.toFixed(2)+'</td></tr>';
+  }).join('');
+}
+
 function renderCoop() {
   window._coopDone = true;
 
