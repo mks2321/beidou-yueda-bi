@@ -26,6 +26,14 @@ jobs:
       - name: Update dashboard data (当月 个人/订单/产品/每日明细)
         run: python3 scripts/update_data.py
 
+      # 渠道码分析（渠道管理系统 GraphQL，与 Google Sheets 那条线互不影响）
+      # continue-on-error: 该接口挂了不能连累上面表格数据的提交
+      - name: Update channel data (新开供应商/渠道码/免费付费新增)
+        continue-on-error: true
+        env:
+          SKILL_TOKEN: ${{ secrets.SKILL_TOKEN }}
+        run: python3 scripts/update_channel.py
+
       - name: Commit and push if changed
         run: |
           git config user.name "GitHub Actions"
