@@ -19,6 +19,8 @@
   * 免费类 = 免费 + 半收费（productModelLabel），付费类 = 收费。按用户口径。
   * 当日数据次日落表，所以区间末日一般是昨天，daily 只保留有数的日子。
   * 组员维度按用户要求不展示，但仍在脚本内计算，用作「组员新增之和 = 总新增」的校验。
+  * daily 里的消耗把 CPT 周期金额**按该码有数的天数均摊**，这样任意时间区间都能求和；
+    整月求和仍等于「每码只计一次」的口径，两者一致（见校验）。
 """
 import json, os, re, ssl, sys, urllib.request, datetime
 
@@ -176,32 +178,55 @@ def main():
     print('[INFO] BI 明细 %d 行' % len(rows))
 
     # ---- 聚合 ----
-    cost_series = {}   # code -> [每日消耗]
-    add = {}
-    rech = {}
-    rn = {}
-    daily = {}         # statDate -> {'free':x,'paid':y}
+    rows = [r for r in rows if r['channelCode'] in meta]
+    cost_series = {}   # code -> [每日消耗原值]
+    add, rech, rn = {}, {}, {}
     for r in rows:
         c = r['channelCode']
-        if c not in meta:
-            continue
         cost_series.setdefault(c, []).append(f(r.get('sysSettlementCnyMoney')))
-        v = f(r.get('addNumber'))
-        add[c] = add.get(c, 0) + v
+        add[c] = add.get(c, 0) + f(r.get('addNumber'))
         rech[c] = rech.get(c, 0) + f(r.get('rechargeMoney'))
         rn[c] = rn.get(c, 0) + f(r.get('rechargeNumber'))
-        k = 'free' if is_free(meta[c]['productModelLabel']) else 'paid'
-        d = daily.setdefault(r['statDate'], {'free': 0.0, 'paid': 0.0})
-        d[k] += v
+
+    def is_snapshot(c):
+        """CPT 周期快照：整段日期消耗恒定且 > 0"""
+        v = cost_series.get(c, [])
+        return len(v) > 1 and len(set(v)) == 1 and v[0] > 0
 
     def cost(c):
-        """CPT 周期快照：整段恒定且 >0 -> 只计一次；否则按日累加"""
+        """该码在整月的真实消耗：快照型只计一次，否则按日累加"""
         v = cost_series.get(c, [])
-        if len(v) > 1 and len(set(v)) == 1 and v[0] > 0:
-            return v[0]
-        return sum(v)
+        return v[0] if is_snapshot(c) else sum(v)
 
-    days = sorted(d for d, x in daily.items() if (x['free'] + x['paid']) > 0)
+    def row_cost(r):
+        """单行消耗：快照型按有数天数均摊，保证任意区间可求和"""
+        c = r['channelCode']
+        if is_snapshot(c):
+            return cost_series[c][0] / len(cost_series[c])
+        return f(r.get('sysSettlementCnyMoney'))
+
+    # 每日 × 分桶：纯免费 / 半收费 / 付费，以及 新供应商 / 老供应商
+    def blank():
+        return {'a': 0.0, 'c': 0.0, 'r': 0.0, 'u': 0.0}
+    daily = {}
+    for r in rows:
+        c = r['channelCode']
+        label = meta[c]['productModelLabel']
+        bkey = 'pure' if label == '免费' else ('half' if label == '半收费' else 'paid')
+        skey = 'ns' if meta[c]['channelSupplierInfoId'] in sup_ids else 'os'
+        d = daily.setdefault(r['statDate'], {'pure': blank(), 'half': blank(), 'paid': blank(),
+                                             'ns': blank(), 'os': blank(), 'ac': set()})
+        v = f(r.get('addNumber')); rc = row_cost(r)
+        for k in (bkey, skey):
+            d[k]['a'] += v
+            d[k]['c'] += rc
+            d[k]['r'] += f(r.get('rechargeMoney'))
+            d[k]['u'] += f(r.get('rechargeNumber'))
+        if v > 0:
+            d['ac'].add(c)
+
+    days = sorted(d for d, x in daily.items()
+                  if (x['pure']['a'] + x['half']['a'] + x['paid']['a']) > 0)
     if not days:
         sys.exit('[ERROR] BI 明细没有任何有新增的日期，疑似数据异常。')
 
@@ -276,16 +301,30 @@ def main():
         'split': split,
         'subSplit': sub_split,
         'supplierSplit': supplier_split,
-        'daily': [{'d': d[5:], 'free': int(daily[d]['free']), 'paid': int(daily[d]['paid'])} for d in days],
+        'daily': [dict(
+            d=d,
+            pure=[int(daily[d]['pure']['a']), round(daily[d]['pure']['c'], 2), round(daily[d]['pure']['r'], 2), int(daily[d]['pure']['u'])],
+            half=[int(daily[d]['half']['a']), round(daily[d]['half']['c'], 2), round(daily[d]['half']['r'], 2), int(daily[d]['half']['u'])],
+            paid=[int(daily[d]['paid']['a']), round(daily[d]['paid']['c'], 2), round(daily[d]['paid']['r'], 2), int(daily[d]['paid']['u'])],
+            ns=[int(daily[d]['ns']['a']), round(daily[d]['ns']['c'], 2)],
+            os=[int(daily[d]['os']['a']), round(daily[d]['os']['c'], 2)],
+            ac=len(daily[d]['ac']),
+        ) for d in days],
     }
 
     # ---- 一致性校验（失败即退出，workflow 不提交）----
     s_add = sum(x['add'] for x in split)
     if s_add != int(tot_add):
         sys.exit('[ERROR] 免费/付费新增之和 %d ≠ 总新增 %d' % (s_add, int(tot_add)))
-    d_add = sum(x['free'] + x['paid'] for x in data['daily'])
+    d_add = sum(x['pure'][0] + x['half'][0] + x['paid'][0] for x in data['daily'])
     if abs(d_add - int(tot_add)) > 1:
         sys.exit('[ERROR] 每日新增之和 %d ≠ 总新增 %d' % (d_add, int(tot_add)))
+    d_add2 = sum(x['ns'][0] + x['os'][0] for x in data['daily'])
+    if abs(d_add2 - int(tot_add)) > 1:
+        sys.exit('[ERROR] 每日新老供应商新增之和 %d ≠ 总新增 %d' % (d_add2, int(tot_add)))
+    d_cost = sum(x['pure'][1] + x['half'][1] + x['paid'][1] for x in data['daily'])
+    if abs(d_cost - tot_cost) > max(1.0, tot_cost * 0.001):
+        sys.exit('[ERROR] 每日消耗之和 %.2f ≠ 总消耗 %.2f（CPT 均摊口径不一致）' % (d_cost, tot_cost))
     m_add = sum(x['add'] for x in members)
     if m_add != int(tot_add):
         sys.exit('[ERROR] 组员新增之和 %d ≠ 总新增 %d（内部校验，组员数据不上看板）' % (m_add, int(tot_add)))
