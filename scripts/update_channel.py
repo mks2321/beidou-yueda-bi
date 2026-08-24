@@ -18,6 +18,7 @@
     本脚本对「整段日期消耗恒定且 > 0」的码按**每码只计一次**处理。
   * 免费类 = 免费 + 半收费（productModelLabel），付费类 = 收费。按用户口径。
   * 当日数据次日落表，所以区间末日一般是昨天，daily 只保留有数的日子。
+  * 组员维度按用户要求不展示，但仍在脚本内计算，用作「组员新增之和 = 总新增」的校验。
 """
 import json, os, re, ssl, sys, urllib.request, datetime
 
@@ -250,6 +251,7 @@ def main():
         n = (s.get('memberAdminUser') or {}).get('name') or '未分配'
         mem.setdefault(n, {'name': n, 'suppliers': 0, 'codes': 0, 'active': 0,
                            'add': 0, 'free': 0, 'paid': 0, 'cost': 0.0})['suppliers'] += 1
+    # 组员维度不再展示在看板上，但保留计算用于一致性校验
     members = sorted(mem.values(), key=lambda x: -x['add'])
     for e in members:
         e['add'] = int(e['add']); e['free'] = int(e['free']); e['paid'] = int(e['paid'])
@@ -275,7 +277,6 @@ def main():
         'subSplit': sub_split,
         'supplierSplit': supplier_split,
         'daily': [{'d': d[5:], 'free': int(daily[d]['free']), 'paid': int(daily[d]['paid'])} for d in days],
-        'members': members,
     }
 
     # ---- 一致性校验（失败即退出，workflow 不提交）----
@@ -287,7 +288,7 @@ def main():
         sys.exit('[ERROR] 每日新增之和 %d ≠ 总新增 %d' % (d_add, int(tot_add)))
     m_add = sum(x['add'] for x in members)
     if m_add != int(tot_add):
-        sys.exit('[ERROR] 组员新增之和 %d ≠ 总新增 %d' % (m_add, int(tot_add)))
+        sys.exit('[ERROR] 组员新增之和 %d ≠ 总新增 %d（内部校验，组员数据不上看板）' % (m_add, int(tot_add)))
     if sum(x['codes'] for x in split) != len(codes):
         sys.exit('[ERROR] 免费/付费码数之和 ≠ 总码数')
     if tot_cost > tot_add * 200 and tot_add > 0:

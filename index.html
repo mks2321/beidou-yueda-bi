@@ -1166,14 +1166,6 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
   </div>
 
   <div class="card">
-    <div class="card-title">按组员</div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>组员</th><th>新开供应商</th><th>新开码</th><th>有量码</th><th>新增</th><th>免费类</th><th>付费类</th><th>消耗</th><th>单新增成本</th></tr></thead>
-      <tbody id="chMemberTable"></tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
     <div class="card-title">口径说明</div>
     <div style="font-size:12px;color:var(--text2);line-height:2">
       渠道码口径为投放分配单创建时间落在当月的全部码；新增 / 消耗 / 充值取自 BI 渠道明细。<br>
@@ -6377,7 +6369,7 @@ const ordersJul = [
 
 // ===== 渠道码分析数据（由 scripts/update_channel.py 每日重建，勿手改）=====
 const channelData = {
-  updated: '2026-08-24 19:53',
+  updated: '2026-08-24 20:02',
   period: {
     start: '2026-08-01',
     end: '2026-08-23',
@@ -6442,19 +6434,6 @@ const channelData = {
     { d: '08-21', free: 31901, paid: 17198 },
     { d: '08-22', free: 24023, paid: 16895 },
     { d: '08-23', free: 23375, paid: 17245 }
-  ],
-  members: [
-    { name: '尹森', suppliers: 35, codes: 270, active: 238, add: 314565, free: 255562, paid: 59003, cost: 69921.96 },
-    { name: '范玮琪', suppliers: 14, codes: 61, active: 45, add: 101180, free: 0, paid: 101180, cost: 43476.74 },
-    { name: '罗冰', suppliers: 17, codes: 55, active: 42, add: 76062, free: 76062, paid: 0, cost: 115284.45 },
-    { name: '聂淮旭', suppliers: 33, codes: 119, active: 76, add: 41030, free: 0, paid: 41030, cost: 23650.33 },
-    { name: '徐晃', suppliers: 14, codes: 54, active: 28, add: 37058, free: 35247, paid: 1811, cost: 185462.55 },
-    { name: '李漫妮', suppliers: 6, codes: 11, active: 7, add: 33450, free: 0, paid: 33450, cost: 372535 },
-    { name: '赵尘', suppliers: 12, codes: 33, active: 25, add: 23165, free: 0, paid: 23165, cost: 147773.24 },
-    { name: '王勃', suppliers: 16, codes: 75, active: 57, add: 9733, free: 0, paid: 9733, cost: 10821.61 },
-    { name: '马奎斯', suppliers: 7, codes: 23, active: 16, add: 4494, free: 0, paid: 4494, cost: 727.25 },
-    { name: '李蓓蓓', suppliers: 3, codes: 5, active: 1, add: 1, free: 0, paid: 1, cost: 67.4 },
-    { name: '未分配', suppliers: 1, codes: 0, active: 0, add: 0, free: 0, paid: 0, cost: 0 }
   ]
 };
 
@@ -8628,21 +8607,6 @@ function renderChannel() {
   document.getElementById('chCodeNote').textContent =
     '渠道码：投放中 ' + (D.codes.total - D.codes.closed) + ' · 已停线 ' + D.codes.closed + ' · 零新增 ' + D.codes.zero;
 
-  var mtot = D.members.reduce(function(s,m){return s+m.add;},0) || 1;
-  document.getElementById('chMemberTable').innerHTML = D.members.map(function(m){
-    var c = m.add ? m.cost/m.add : 0;
-    var cls = c<=1 ? 'c-green' : (c<=5 ? 'c-amber' : 'c-red');
-    return '<tr>' +
-      '<td><b>'+m.name+'</b></td>' +
-      '<td>'+nf(m.suppliers)+'</td>' +
-      '<td>'+nf(m.codes)+'</td>' +
-      '<td>'+nf(m.active)+'</td>' +
-      '<td class="c-green">'+nf(m.add)+' <span style="color:var(--text3);font-size:11px">'+(m.add/mtot*100).toFixed(1)+'%</span></td>' +
-      '<td>'+nf(m.free)+'</td>' +
-      '<td>'+nf(m.paid)+'</td>' +
-      '<td class="c-amber">'+money(m.cost)+'</td>' +
-      '<td class="'+cls+'">¥'+c.toFixed(2)+'</td></tr>';
-  }).join('');
 }
 
 function renderCoop() {
