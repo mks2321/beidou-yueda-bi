@@ -1177,7 +1177,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       <div style="font-size:11px;color:var(--text3);margin-top:10px" id="chSupNote"></div>
     </div>
     <div class="card" style="margin-bottom:0">
-      <div class="card-title">当月供应商与码（不随区间变化）</div>
+      <div class="card-title">当月累计（不随区间变化）</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>项</th><th>数量</th><th>占比</th></tr></thead>
         <tbody id="chSupStatus"></tbody>
@@ -1189,11 +1189,12 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
   <div class="card">
     <div class="card-title">口径说明</div>
     <div style="font-size:12px;color:var(--text2);line-height:2">
-      渠道码口径为投放分配单创建时间落在<b>当月</b>的全部码；新增 / 消耗 / 充值取自 BI 渠道明细，随上方统计区间联动。<br>
+      本页有<b>两条时间轴</b>，区间同时作用于两者，但对象不同：<b>新开供应商 / 新开渠道码</b>按<b>建档日</b>筛，<b>新增 / 消耗 / 充值</b>按<b>统计日</b>筛。
+      所以「近 7 天新开 N 个码」和「近 7 天新增 X」不是同一批对象——后者是当月全部新码在这 7 天跑出的量。<br>
       免费类 = 免费产品 + 半收费产品，付费类 = 收费产品。<br>
       CPT（按时长买断）在宽表里是按计费周期逐日重复写入的快照值，脚本已改为<b>按该码有数天数均摊到每天</b>，所以任意区间都可求和，整月合计与「每码只计一次」口径一致。<br>
-      「新开供应商」「渠道码总数」「停线」是按建档时间统计的当月累计值，不随区间变化。<br>
-      当日数据通常次日落表，因此可选区间末日一般为昨天。
+      右下角「当月供应商与码」一栏是<b>整月累计</b>快照，不随区间变化，用来对照。<br>
+      当日数据通常次日落表，所以可选区间可以到今天（能看到今天新建的码），但今天一般还没有新增数据。
     </div>
   </div>
 </div>
@@ -6391,7 +6392,7 @@ const ordersJul = [
 
 // ===== 渠道码分析数据（由 scripts/update_channel.py 每日重建，勿手改）=====
 const channelData = {
-  updated: '2026-08-24 21:39',
+  updated: '2026-08-24 20:14',
   period: {
     start: '2026-08-01',
     end: '2026-08-23',
@@ -6409,9 +6410,9 @@ const channelData = {
     ]
   },
   codes: {
-    total: 708,
+    total: 706,
     active: 535,
-    zero: 173,
+    zero: 171,
     closed: 158
   },
   totals: {
@@ -6421,16 +6422,16 @@ const channelData = {
     rechargeUsers: 1473
   },
   split: [
-    { name: '免费类', codes: 222, active: 186, zero: 36, closed: 42, add: 366871, cost: 361216.35, recharge: 58, rechargeUsers: 3 },
+    { name: '免费类', codes: 220, active: 186, zero: 34, closed: 42, add: 366871, cost: 361216.35, recharge: 58, rechargeUsers: 3 },
     { name: '付费类', codes: 486, active: 349, zero: 137, closed: 116, add: 273867, cost: 608504.18, recharge: 279100, rechargeUsers: 1470 }
   ],
   subSplit: [
     { name: '纯免费', codes: 101, active: 88, zero: 13, closed: 23, add: 226739, cost: 259415.13, recharge: 58, rechargeUsers: 3 },
-    { name: '半收费', codes: 121, active: 98, zero: 23, closed: 19, add: 140132, cost: 101801.23, recharge: 0, rechargeUsers: 0 }
+    { name: '半收费', codes: 119, active: 98, zero: 21, closed: 19, add: 140132, cost: 101801.23, recharge: 0, rechargeUsers: 0 }
   ],
   supplierSplit: [
-    { name: '新供应商', codes: 468, active: 348, zero: 120, closed: 83, add: 380969, cost: 834197.62, recharge: 146208, rechargeUsers: 765 },
-    { name: '老供应商', codes: 240, active: 187, zero: 53, closed: 75, add: 259769, cost: 135522.91, recharge: 132950, rechargeUsers: 708 }
+    { name: '新供应商', codes: 467, active: 348, zero: 119, closed: 83, add: 380969, cost: 834197.62, recharge: 146208, rechargeUsers: 765 },
+    { name: '老供应商', codes: 239, active: 187, zero: 52, closed: 75, add: 259769, cost: 135522.91, recharge: 132950, rechargeUsers: 708 }
   ],
   daily: [
     {
@@ -7123,6 +7124,31 @@ const channelData = {
       ],
       ac: 327
     }
+  ],
+  created: [
+    { d: '2026-08-01', sup: 6, codes: 41, closed: 22, free: 3, paid: 38 },
+    { d: '2026-08-02', sup: 2, codes: 22, closed: 18, free: 2, paid: 20 },
+    { d: '2026-08-03', sup: 14, codes: 63, closed: 24, free: 19, paid: 44 },
+    { d: '2026-08-04', sup: 7, codes: 52, closed: 29, free: 14, paid: 38 },
+    { d: '2026-08-05', sup: 13, codes: 55, closed: 17, free: 6, paid: 49 },
+    { d: '2026-08-06', sup: 4, codes: 39, closed: 9, free: 7, paid: 32 },
+    { d: '2026-08-07', sup: 10, codes: 22, closed: 7, free: 6, paid: 16 },
+    { d: '2026-08-08', sup: 6, codes: 40, closed: 5, free: 5, paid: 35 },
+    { d: '2026-08-09', sup: 0, codes: 2, closed: 0, free: 2, paid: 0 },
+    { d: '2026-08-10', sup: 6, codes: 11, closed: 2, free: 5, paid: 6 },
+    { d: '2026-08-11', sup: 9, codes: 31, closed: 10, free: 5, paid: 26 },
+    { d: '2026-08-12', sup: 7, codes: 22, closed: 1, free: 10, paid: 12 },
+    { d: '2026-08-13', sup: 14, codes: 48, closed: 2, free: 16, paid: 32 },
+    { d: '2026-08-14', sup: 7, codes: 27, closed: 2, free: 25, paid: 2 },
+    { d: '2026-08-15', sup: 8, codes: 42, closed: 2, free: 20, paid: 22 },
+    { d: '2026-08-16', sup: 3, codes: 9, closed: 0, free: 9, paid: 0 },
+    { d: '2026-08-17', sup: 10, codes: 44, closed: 3, free: 25, paid: 19 },
+    { d: '2026-08-18', sup: 10, codes: 40, closed: 4, free: 14, paid: 26 },
+    { d: '2026-08-19', sup: 4, codes: 22, closed: 1, free: 7, paid: 15 },
+    { d: '2026-08-20', sup: 6, codes: 20, closed: 0, free: 8, paid: 12 },
+    { d: '2026-08-21', sup: 4, codes: 13, closed: 0, free: 2, paid: 11 },
+    { d: '2026-08-22', sup: 2, codes: 17, closed: 0, free: 3, paid: 14 },
+    { d: '2026-08-24', sup: 6, codes: 24, closed: 0, free: 7, paid: 17 }
   ]
 };
 
@@ -9200,13 +9226,27 @@ function renderOrders() {
 // ║  合作方式分析（方案A-2）                                     ║
 // ╚════════════════════════════════════════════════════════════╝
 // ===================== 新开渠道码 =====================
+function chBounds() {
+  var D = channelData;
+  var all = (D.daily || []).map(function(x){ return x.d; })
+    .concat((D.created || []).map(function(x){ return x.d; }));
+  all.sort();
+  return { min: all[0], max: all[all.length - 1] };
+}
+
 function chPreset(n, el) {
   var D = channelData;
   if (!D.daily || !D.daily.length) return;
-  var days = D.daily.map(function(x){ return x.d; });
-  var s = (n === 'all') ? days[0] : days[Math.max(0, days.length - n)];
+  var b = chBounds();
+  var s = b.min;
+  if (n !== 'all') {
+    var dt = new Date(b.max + 'T00:00:00');
+    dt.setDate(dt.getDate() - (n - 1));
+    s = dt.toISOString().slice(0, 10);
+    if (s < b.min) s = b.min;
+  }
   document.getElementById('chStart').value = s;
-  document.getElementById('chEnd').value = days[days.length - 1];
+  document.getElementById('chEnd').value = b.max;
   document.querySelectorAll('.ch-preset').forEach(function(b){ b.classList.remove('active'); });
   if (el) el.classList.add('active');
   renderChannel();
@@ -9225,20 +9265,24 @@ function renderChannel() {
     return;
   }
 
-  var days = D.daily.map(function(x){ return x.d; });
-  var minD = days[0], maxD = days[days.length - 1];
+  var b = chBounds();
+  var minD = b.min, maxD = b.max;
   var si = document.getElementById('chStart'), ei = document.getElementById('chEnd');
   si.min = ei.min = minD; si.max = ei.max = maxD;
   if (!si.value) si.value = minD;
   if (!ei.value) ei.value = maxD;
   if (si.value < minD) si.value = minD;
+  if (si.value > maxD) si.value = maxD;
   if (ei.value > maxD) ei.value = maxD;
+  if (ei.value < minD) ei.value = minD;
   if (si.value > ei.value) si.value = ei.value;
 
-  var rows = D.daily.filter(function(x){ return x.d >= si.value && x.d <= ei.value; });
+  var inRange = function(x){ return x.d >= si.value && x.d <= ei.value; };
+  var rows = D.daily.filter(inRange);
+  var cre = (D.created || []).filter(inRange);
   document.getElementById('chUpdated').textContent =
     '可选范围 ' + minD + ' 至 ' + maxD + ' · 更新于 ' + D.updated;
-  if (!rows.length) {
+  if (!rows.length && !cre.length) {
     document.getElementById('chRangeInfo').textContent = '所选区间无数据';
     return;
   }
@@ -9255,16 +9299,21 @@ function renderChannel() {
   var tAdd = free[0] + paid[0], tCost = free[1] + paid[1];
   var tRech = free[2] + paid[2], tUsers = free[3] + paid[3];
   var nDays = rows.length;
-  var acAvg = rows.reduce(function(s,r){ return s + r.ac; }, 0) / nDays;
+  var acAvg = nDays ? rows.reduce(function(s,r){ return s + r.ac; }, 0) / nDays : 0;
+
+  // 建档日口径
+  var cSup = 0, cCode = 0, cClosed = 0, cFree = 0, cPaid = 0;
+  cre.forEach(function(x){ cSup += x.sup; cCode += x.codes; cClosed += x.closed; cFree += x.free; cPaid += x.paid; });
 
   document.getElementById('chRangeInfo').textContent =
-    '已选 ' + nDays + ' 天（' + rows[0].d + ' ~ ' + rows[nDays-1].d + '）· 日均活跃码 ' + Math.round(acAvg) + ' 个';
+    si.value + ' ~ ' + ei.value + ' · 有数 ' + nDays + ' 天' +
+    (nDays ? ' · 日均活跃码 ' + Math.round(acAvg) + ' 个' : '（该区间尚无统计数据）');
 
   var cpa = tAdd ? tCost / tAdd : 0;
   document.getElementById('chKPI').innerHTML = [
-    ['新开供应商', nf(D.suppliers.total) + ' 家', '当月累计 · ' + D.suppliers.withCode + ' 家已开码', 'var(--gold)'],
-    ['新开渠道码', nf(D.codes.total) + ' 个', '当月累计 · ' + D.codes.closed + ' 个已停线', '#4a90e2'],
-    ['区间新增', nf(tAdd), nDays + ' 天 · 日均 ' + nf(tAdd / nDays), '#3ecf8e'],
+    ['新开供应商', nf(cSup) + ' 家', '建档于区间内 · 当月共 ' + D.suppliers.total + ' 家', 'var(--gold)'],
+    ['新开渠道码', nf(cCode) + ' 个', '建档于区间内 · 免费 ' + cFree + ' / 付费 ' + cPaid + ' · 已停线 ' + cClosed, '#4a90e2'],
+    ['区间新增', nf(tAdd), (nDays ? nDays + ' 个有数日 · 日均 ' + nf(tAdd / nDays) : '区间内无统计数据'), '#3ecf8e'],
     ['区间消耗', money(tCost), '充值回收 ' + money(tRech), '#f5a623'],
     ['单新增成本', '¥' + cpa.toFixed(2), '充值人数 ' + nf(tUsers), '#9b59b6']
   ].map(function(k){
@@ -9331,8 +9380,8 @@ function renderChannel() {
   document.getElementById('chSupStatus').innerHTML = statusRows +
     '<tr><td style="color:var(--text3)">有量供应商</td><td>'+D.suppliers.withVolume+'</td><td>'+(D.suppliers.withVolume/totS*100).toFixed(1)+'%</td></tr>';
   document.getElementById('chCodeNote').textContent =
-    '渠道码 ' + D.codes.total + ' 个：投放中 ' + (D.codes.total - D.codes.closed) +
-    ' · 已停线 ' + D.codes.closed + ' · 当月零新增 ' + D.codes.zero;
+    '当月累计：渠道码 ' + D.codes.total + ' 个，投放中 ' + (D.codes.total - D.codes.closed) +
+    ' · 已停线 ' + D.codes.closed + ' · 零新增 ' + D.codes.zero;
 }
 
 function renderCoop() {

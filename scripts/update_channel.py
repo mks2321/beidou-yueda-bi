@@ -17,7 +17,12 @@
     每一天都重复写同一个数，不是当日增量。直接 SUM 会把消耗放大近 9 倍。
     本脚本对「整段日期消耗恒定且 > 0」的码按**每码只计一次**处理。
   * 免费类 = 免费 + 半收费（productModelLabel），付费类 = 收费。按用户口径。
-  * 当日数据次日落表，所以区间末日一般是昨天，daily 只保留有数的日子。
+  * 本页有两条时间轴，互不相同，看板上的区间同时作用于两者：
+      建档日 createTime -> 新开供应商数 / 新开渠道码数 / 停线数（created 数组）
+      统计日 statDate   -> 新增 / 消耗 / 充值（daily 数组）
+    所以「近7天新开 20 个码」与「近7天新增 31 万」不是同一批对象，前者是这 7 天建的码，
+    后者是当月全部新码在这 7 天跑出的量。页面上已分别标注。
+  * 当日数据次日落表，所以 daily 末日一般是昨天，但 created 可以到今天。
   * 组员维度按用户要求不展示，但仍在脚本内计算，用作「组员新增之和 = 总新增」的校验。
   * daily 里的消耗把 CPT 周期金额**按该码有数的天数均摊**，这样任意时间区间都能求和；
     整月求和仍等于「每码只计一次」的口径，两者一致（见校验）。
@@ -284,6 +289,24 @@ def main():
 
     codes_with_vol = {meta[c]['channelSupplierInfoId'] for c in codes if add.get(c, 0) > 0}
 
+    # 按建档日统计：新开供应商 / 新开渠道码 / 其中停线 / 免费·付费码数
+    cre = {}
+
+    def cslot(d):
+        return cre.setdefault(d, {'sup': 0, 'codes': 0, 'closed': 0, 'free': 0, 'paid': 0})
+
+    for sp in sups:
+        cslot((sp.get('createTime') or '')[:10])['sup'] += 1
+    for c in codes:
+        e = cslot((meta[c].get('createTime') or '')[:10])
+        e['codes'] += 1
+        if meta[c]['statusLabel'] == '已关闭':
+            e['closed'] += 1
+        e['free' if is_free(meta[c]['productModelLabel']) else 'paid'] += 1
+    cre.pop('', None)
+    created = [dict(d=d, sup=cre[d]['sup'], codes=cre[d]['codes'], closed=cre[d]['closed'],
+                    free=cre[d]['free'], paid=cre[d]['paid']) for d in sorted(cre)]
+
     data = {
         'updated': bj_now.strftime('%Y-%m-%d %H:%M'),
         'period': {'start': days[0], 'end': days[-1], 'days': len(days)},
@@ -310,6 +333,7 @@ def main():
             os=[int(daily[d]['os']['a']), round(daily[d]['os']['c'], 2)],
             ac=len(daily[d]['ac']),
         ) for d in days],
+        'created': created,
     }
 
     # ---- 一致性校验（失败即退出，workflow 不提交）----
@@ -330,6 +354,12 @@ def main():
         sys.exit('[ERROR] 组员新增之和 %d ≠ 总新增 %d（内部校验，组员数据不上看板）' % (m_add, int(tot_add)))
     if sum(x['codes'] for x in split) != len(codes):
         sys.exit('[ERROR] 免费/付费码数之和 ≠ 总码数')
+    if sum(x['sup'] for x in created) != len(sups):
+        sys.exit('[ERROR] 建档日供应商之和 %d ≠ 新开供应商 %d' % (sum(x['sup'] for x in created), len(sups)))
+    if sum(x['codes'] for x in created) != len(codes):
+        sys.exit('[ERROR] 建档日渠道码之和 %d ≠ 新开渠道码 %d' % (sum(x['codes'] for x in created), len(codes)))
+    if sum(x['closed'] for x in created) != data['codes']['closed']:
+        sys.exit('[ERROR] 建档日停线码之和 ≠ 停线总数')
     if tot_cost > tot_add * 200 and tot_add > 0:
         sys.exit('[ERROR] 单新增成本 %.1f 异常偏高，疑似 CPT 周期快照被按天累加。' % (tot_cost / tot_add))
 
