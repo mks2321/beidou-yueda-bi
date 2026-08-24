@@ -319,6 +319,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       <div class="nav-sub-item" onclick="switchProductSub('daily3',this)">每日明细</div>
       <div class="nav-sub-item" onclick="switchProductSub('compare',this)">数据对比</div>
       <div class="nav-sub-item" onclick="switchProductSub('strategy',this)">投放策略</div>
+      <div class="nav-sub-item" onclick="switchProductSub('channel',this)">新开渠道码</div>
     </div>
     <div class="nav-item" onclick="switchPage('personal',this)">
       <span class="nav-icon">&#128100;</span>
@@ -335,11 +336,6 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       <div class="nav-sub-item" onclick="switchBudgetSub('dailyexp',this)">每日支出</div>
       <div class="nav-sub-item" onclick="switchBudgetSub('orders',this)">订单流水</div>
       <div class="nav-sub-item" onclick="switchBudgetSub('coop',this)">合作方式分析</div>
-    </div>
-    <div class="nav-item" onclick="switchPage('channel',this)">
-      <span class="nav-icon">&#128279;</span>
-      <span class="nav-label">渠道码分析</span>
-      <span class="nav-dot"></span>
     </div>
     <div class="nav-item" onclick="switchPage('bizcollect',this)">
       <span class="nav-icon">&#129534;</span>
@@ -1132,8 +1128,8 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
 <!-- ═══ PAGE 5: 月度复盘 ═══ -->
 <!-- ═══ PAGE: 商务收款 ═══ -->
 <div class="page" id="page-channel">
-  <div class="section-title">渠道码分析</div>
-  <div class="section-sub">新开供应商 / 新开渠道码 / 免费·付费新增拆分 &nbsp;·&nbsp; 数据源：渠道管理系统 &nbsp;·&nbsp; <span id="chUpdated">—</span></div>
+  <div class="section-title">新开渠道码</div>
+  <div class="section-sub">当月新开供应商 / 新开渠道码 / 免费·付费新增拆分 &nbsp;·&nbsp; 数据源：渠道管理系统 &nbsp;·&nbsp; <span id="chUpdated">—</span></div>
 
   <div class="kpi-grid kpi-grid-5" id="chKPI"></div>
 
@@ -6956,7 +6952,7 @@ function switchMonth(month) {
 const pageTitles = {
   overview:'项目概览', product:'产品投放', personal:'个人投放进度', budget:'预算与支出', review:'月度复盘',
   daily3:'每日明细', compare:'产品投放数据对比', strategy:'投放策略', dailyexp:'每日支出', orders:'订单流水', coop:'合作方式分析',
-  bizcollect:'商务收款', channel:'渠道码分析'
+  bizcollect:'商务收款', channel:'新开渠道码'
 };
 
 function renderBizCollect() {
@@ -6974,9 +6970,9 @@ function switchPage(id, el) {
   document.getElementById('topbarTitle').textContent = pageTitles[id] || '';
 
   // 保持子导航展开并高亮
-  if (['product','daily3','compare','strategy'].includes(id)) {
+  if (['product','daily3','compare','strategy','channel'].includes(id)) {
     document.getElementById('navSubProduct').classList.add('open');
-    const idx = id==='daily3' ? 2 : id==='compare' ? 3 : id==='strategy' ? 4 : 1;
+    const idx = id==='daily3' ? 2 : id==='compare' ? 3 : id==='strategy' ? 4 : id==='channel' ? 5 : 1;
     document.querySelector(`#navSubProduct .nav-sub-item:nth-child(${idx})`).classList.add('active');
     document.querySelectorAll('.nav-item')[1].classList.add('active');
   }
@@ -7006,6 +7002,7 @@ function switchProductSub(sub, el) {
   else if (sub === 'daily3') switchPage('daily3');
   else if (sub === 'compare') switchPage('compare');
   else if (sub === 'strategy') switchPage('strategy');
+  else if (sub === 'channel') switchPage('channel');
 }
 function switchBudgetSub(sub, el) {
   if (sub === 'main') switchPage('budget', document.querySelectorAll('.nav-item')[3]);
