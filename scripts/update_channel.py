@@ -22,8 +22,13 @@
     **不要**做「周期快照去重」——那是早期的错误假设，已用结算单交叉验证推翻。
   * 结算单按 createTime 落在当月拉取。**不能用 startTimeBegin/stopTimeEnd 筛**：
     「待结算」单的周期是开口的，会被日期筛丢掉（实测丢掉一半以上）。
-  * 结算单的消耗按其结算周期**分摊到天**（按该码当日新增占比，无新增则平均分摊），
-    这样看板的时间区间才能对成本求和；整月合计等于结算单消耗合计。
+  * 结算单的金额按其结算周期**分摊到天**（按该码当日新增占比，无新增则平均分摊），
+    这样看板的时间区间才能对金额求和；整月合计等于结算单合计。
+  * **不要把 actualSettlementCnyMoney 全量加总叫「实际结算」**，那是错的：
+    其中「新开预付」类的单消耗为 0 却有金额（纯开户预付款），
+    且「待结算」的单只是待付金额、并未真正结算或打款。
+    本脚本按状态拆成两个口径：paid = 已打款单的金额（真实现金流出），
+    pending = 待结算/审核中/审核通过的金额（欠着没付）。
   * 免费类 = 免费 + 半收费（productModelLabel），付费类 = 收费。按用户口径。
   * 本页有两条时间轴，互不相同，看板上的区间同时作用于两者：
       建档日 createTime -> 新开供应商数 / 新开渠道码数 / 停线数（created 数组）
@@ -237,8 +242,11 @@ def main():
 
     # 把每张结算单的消耗/实际结算按结算周期分摊到天（按当日新增占比，无新增则平均）
     cost_day = {}     # code -> {date: 分摊消耗}
-    settled_day = {}  # code -> {date: 分摊实际结算}
-    sr_consumed = sr_settled = 0.0
+    paid_day = {}     # code -> {date: 分摊已打款金额}
+    pend_day = {}     # code -> {date: 分摊待付金额}
+    sr_consumed = sr_paid = sr_pend = 0.0
+    PAID_ST = ('已打款',)
+    PEND_ST = ('待结算', '审核中', '审核通过')
     for x in srs:
         c = x['channelCode']
         st = (x.get('startTime') or '')[:10]
@@ -253,24 +261,32 @@ def main():
         days_ = daterange(lo, hi)
         co = f(x.get('consumedCnyMoney'))
         se = f(x.get('actualSettlementCnyMoney'))
+        st = x.get('statusLabel') or ''
+        pa = se if st in PAID_ST else 0.0
+        pe = se if st in PEND_ST else 0.0
         sr_consumed += co
-        sr_settled += se
+        sr_paid += pa
+        sr_pend += pe
         w = {d: add_by_day.get(c, {}).get(d, 0.0) for d in days_}
         tw = sum(w.values())
         for d in days_:
             share = (w[d] / tw) if tw > 0 else (1.0 / len(days_))
             cost_day.setdefault(c, {})[d] = cost_day.setdefault(c, {}).get(d, 0.0) + co * share
-            settled_day.setdefault(c, {})[d] = settled_day.setdefault(c, {}).get(d, 0.0) + se * share
+            paid_day.setdefault(c, {})[d] = paid_day.setdefault(c, {}).get(d, 0.0) + pa * share
+            pend_day.setdefault(c, {})[d] = pend_day.setdefault(c, {}).get(d, 0.0) + pe * share
 
     def cost(c):
         return sum(cost_day.get(c, {}).values())
 
-    def settled(c):
-        return sum(settled_day.get(c, {}).values())
+    def paid_of(c):
+        return sum(paid_day.get(c, {}).values())
+
+    def pend_of(c):
+        return sum(pend_day.get(c, {}).values())
 
     # 每日 × 分桶：纯免费 / 半收费 / 付费，以及 新供应商 / 老供应商
     def blank():
-        return {'a': 0.0, 'c': 0.0, 'r': 0.0, 'u': 0.0, 's': 0.0}
+        return {'a': 0.0, 'c': 0.0, 'r': 0.0, 'u': 0.0, 'p': 0.0, 'q': 0.0}
     daily = {}
 
     def slot(d):
@@ -298,22 +314,25 @@ def main():
         for d, v in dm.items():
             slot(d)[bkey]['c'] += v
             slot(d)[skey]['c'] += v
-    for c, dm in settled_day.items():
-        label = meta[c]['productModelLabel']
-        bkey = 'pure' if label == '免费' else ('half' if label == '半收费' else 'paid')
-        skey = 'ns' if meta[c]['channelSupplierInfoId'] in sup_ids else 'os'
-        for d, v in dm.items():
-            slot(d)[bkey]['s'] += v
-            slot(d)[skey]['s'] += v
+    for src, key in ((paid_day, 'p'), (pend_day, 'q')):
+        for c, dm in src.items():
+            label = meta[c]['productModelLabel']
+            bkey = 'pure' if label == '免费' else ('half' if label == '半收费' else 'paid')
+            skey = 'ns' if meta[c]['channelSupplierInfoId'] in sup_ids else 'os'
+            for d, v in dm.items():
+                slot(d)[bkey][key] += v
+                slot(d)[skey][key] += v
 
     days = sorted(d for d, x in daily.items()
                   if (x['pure']['a'] + x['half']['a'] + x['paid']['a']) > 0
                   or (x['pure']['c'] + x['half']['c'] + x['paid']['c']) > 0
-                  or (x['pure']['s'] + x['half']['s'] + x['paid']['s']) > 0)
+                  or (x['pure']['p'] + x['half']['p'] + x['paid']['p']) > 0
+                  or (x['pure']['q'] + x['half']['q'] + x['paid']['q']) > 0)
 
     tot_add = sum(add.values())
     tot_cost = sum(cost(c) for c in codes)
-    tot_settled = sum(settled(c) for c in codes)
+    tot_paid = sum(paid_of(c) for c in codes)
+    tot_pend = sum(pend_of(c) for c in codes)
     tot_bicost = sum(bicost.values())
     tot_rech = sum(rech.values())
     tot_rn = sum(rn.values())
@@ -326,7 +345,8 @@ def main():
                 'zero': sum(1 for c in cs if add.get(c, 0) <= 0),
                 'closed': sum(1 for c in cs if meta[c]['statusLabel'] == '已关闭'),
                 'add': int(a), 'cost': round(sum(cost(c) for c in cs), 2),
-                'settled': round(sum(settled(c) for c in cs), 2),
+                'paidOut': round(sum(paid_of(c) for c in cs), 2),
+                'pending': round(sum(pend_of(c) for c in cs), 2),
                 'recharge': round(sum(rech.get(c, 0) for c in cs), 2),
                 'rechargeUsers': int(sum(rn.get(c, 0) for c in cs))}
 
@@ -399,7 +419,8 @@ def main():
                   'zero': sum(1 for c in codes if add.get(c, 0) <= 0),
                   'closed': sum(1 for c in codes if meta[c]['statusLabel'] == '已关闭')},
         'totals': {'add': int(tot_add), 'cost': round(tot_cost, 2),
-                   'settled': round(tot_settled, 2), 'biCost': round(tot_bicost, 2),
+                   'paidOut': round(tot_paid, 2), 'pending': round(tot_pend, 2),
+                   'biCost': round(tot_bicost, 2),
                    'settlements': len(srs),
                    'recharge': round(tot_rech, 2), 'rechargeUsers': int(tot_rn)},
         'split': split,
@@ -407,9 +428,9 @@ def main():
         'supplierSplit': supplier_split,
         'daily': [dict(
             d=d,
-            pure=[int(daily[d]['pure']['a']), round(daily[d]['pure']['c'], 2), round(daily[d]['pure']['r'], 2), int(daily[d]['pure']['u']), round(daily[d]['pure']['s'], 2)],
-            half=[int(daily[d]['half']['a']), round(daily[d]['half']['c'], 2), round(daily[d]['half']['r'], 2), int(daily[d]['half']['u']), round(daily[d]['half']['s'], 2)],
-            paid=[int(daily[d]['paid']['a']), round(daily[d]['paid']['c'], 2), round(daily[d]['paid']['r'], 2), int(daily[d]['paid']['u']), round(daily[d]['paid']['s'], 2)],
+            pure=[int(daily[d]['pure']['a']), round(daily[d]['pure']['c'], 2), round(daily[d]['pure']['r'], 2), int(daily[d]['pure']['u']), round(daily[d]['pure']['p'], 2), round(daily[d]['pure']['q'], 2)],
+            half=[int(daily[d]['half']['a']), round(daily[d]['half']['c'], 2), round(daily[d]['half']['r'], 2), int(daily[d]['half']['u']), round(daily[d]['half']['p'], 2), round(daily[d]['half']['q'], 2)],
+            paid=[int(daily[d]['paid']['a']), round(daily[d]['paid']['c'], 2), round(daily[d]['paid']['r'], 2), int(daily[d]['paid']['u']), round(daily[d]['paid']['p'], 2), round(daily[d]['paid']['q'], 2)],
             ns=[int(daily[d]['ns']['a']), round(daily[d]['ns']['c'], 2)],
             os=[int(daily[d]['os']['a']), round(daily[d]['os']['c'], 2)],
             ac=len(daily[d]['ac']),
@@ -456,8 +477,8 @@ def main():
         print('[OK] 渠道码数据无变化，未写入。')
         return
     open('index.html', 'w', encoding='utf-8').write(html_new)
-    print('[OK] 渠道码数据已写入：供应商 %d 家 · 渠道码 %d 个 · 新增 %d · 结算单消耗 %.0f（%d 张）· 实际结算 %.0f · 区间 %s~%s（%d天）'
-          % (len(sups), len(codes), int(tot_add), tot_cost, len(srs), tot_settled, days[0], days[-1], len(days)))
+    print('[OK] 渠道码数据已写入：供应商 %d 家 · 渠道码 %d 个 · 新增 %d · 结算单消耗 %.0f（%d 张）· 已打款 %.0f · 待付 %.0f · 区间 %s~%s（%d天）'
+          % (len(sups), len(codes), int(tot_add), tot_cost, len(srs), tot_paid, tot_pend, days[0], days[-1], len(days)))
     print('     获客成本 %.3f  （BI 宽表消耗仅 %.0f，覆盖 %.0f%%，故不采用）'
           % (tot_cost / tot_add if tot_add else 0, tot_bicost,
              tot_bicost / tot_cost * 100 if tot_cost else 0))
