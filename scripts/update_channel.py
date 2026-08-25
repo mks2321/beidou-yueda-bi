@@ -4,18 +4,26 @@
 北斗悦达BI看板 · 渠道码分析数据自动更新（GitHub Actions 调用）
 
 数据源与 Google Sheets 那条线无关：直接查渠道管理系统的 GraphQL API
-  1) supplierPage       当月新建的供应商
-  2) distributePage     当月新建的投放分配单（= 渠道码）
-  3) channelDetailReport 这些码在当月的每日新增/消耗/充值（BI 渠道明细）
+  1) supplierPage        当月新建的供应商
+  2) distributePage      当月新建的投放分配单（= 渠道码）
+  3) channelDetailReport 这些码在当月的每日新增/充值（BI 渠道明细）
+  4) settlementReportPage 这些码的结算单 —— **成本以结算单为准**
 
 重建 index.html 里的 `const channelData = {...};`，不提交（commit/push 由 workflow 负责）。
 拉数或校验失败 -> 退出码 1。本步骤在 workflow 里是 continue-on-error，
 失败不会连累 Google Sheets 那条线。
 
 关键口径（改脚本前务必读）：
-  * CPT（按时长买断）的 sysSettlementCnyMoney 在 BI 宽表里是**计费周期快照**，
-    每一天都重复写同一个数，不是当日增量。直接 SUM 会把消耗放大近 9 倍。
-    本脚本对「整段日期消耗恒定且 > 0」的码按**每码只计一次**处理。
+  * **成本一律取结算单，不要用 BI 宽表。** BI 渠道明细/推广日表的 sysSettlementCnyMoney
+    对 CPC 码大面积为 0：CPC 按「点击数 × 单价」计费，而绝大多数码的点击数没有回传进 BI。
+    实测某产品 BI 只记到真实成本的 27%。CPA（扣量后新增×单价）与 CPT 在 BI 里是准的，
+    但既然要统一口径，全部改走结算单。
+  * CPT 的 cptBillingPeriod 实测为 DAY（按天），日消耗逐日累加正确，
+    **不要**做「周期快照去重」——那是早期的错误假设，已用结算单交叉验证推翻。
+  * 结算单按 createTime 落在当月拉取。**不能用 startTimeBegin/stopTimeEnd 筛**：
+    「待结算」单的周期是开口的，会被日期筛丢掉（实测丢掉一半以上）。
+  * 结算单的消耗按其结算周期**分摊到天**（按该码当日新增占比，无新增则平均分摊），
+    这样看板的时间区间才能对成本求和；整月合计等于结算单消耗合计。
   * 免费类 = 免费 + 半收费（productModelLabel），付费类 = 收费。按用户口径。
   * 本页有两条时间轴，互不相同，看板上的区间同时作用于两者：
       建档日 createTime -> 新开供应商数 / 新开渠道码数 / 停线数（created 数组）
@@ -79,6 +87,10 @@ Q_DIST = ('query($input:DistributePageInput){ distributePage(input:$input){ tota
 Q_BI = ('query($input:BiQueryInput){ channelDetailReport(input:$input){ total cursor list { '
         'statDate channelCode addNumber rechargeNumber rechargeMoney sysSettlementCnyMoney } } }')
 
+Q_SR = ('query($input:SettlementReportPageInput){ settlementReportPage(input:$input){ total list { '
+        'settlementNo channelCode startTime stopTime statusLabel '
+        'consumedCnyMoney actualSettlementCnyMoney } } }')
+
 
 def bi_rows(codes, start, end, chunk=100):
     """按渠道码分批 + cursor 游标翻页拉 BI 渠道明细。深翻超 1 万行会报错，故分批。"""
@@ -130,8 +142,19 @@ def js(obj, indent=2):
         if isinstance(o, list):
             if not o:
                 return '[]'
-            # 元素是扁平 dict 时压成一行，表格数据更好读
-            if all(isinstance(x, dict) and not any(isinstance(v, (dict, list)) for v in x.values()) for x in o):
+            if all(not isinstance(y, (dict, list)) for y in o):
+                return '[' + ', '.join(enc(y, 0) for y in o) + ']'
+            # 元素是扁平 dict（值可以是数值小列表）时压成一行，表格数据更好读
+            def flat(x):
+                if not isinstance(x, dict):
+                    return False
+                for v in x.values():
+                    if isinstance(v, dict):
+                        return False
+                    if isinstance(v, list) and any(isinstance(y, (dict, list)) for y in v):
+                        return False
+                return True
+            if all(flat(x) for x in o):
                 inner = [' ' * (indent * (lv + 1)) + '{ ' +
                          ', '.join('%s: %s' % (k, enc(v, 0)) for k, v in x.items()) + ' }' for x in o]
                 return '[\n' + ',\n'.join(inner) + '\n' + pad + ']'
@@ -184,59 +207,114 @@ def main():
 
     # ---- 聚合 ----
     rows = [r for r in rows if r['channelCode'] in meta]
-    cost_series = {}   # code -> [每日消耗原值]
-    add, rech, rn = {}, {}, {}
+    add, rech, rn, bicost = {}, {}, {}, {}
+    add_by_day = {}          # code -> {statDate: 新增}
     for r in rows:
         c = r['channelCode']
-        cost_series.setdefault(c, []).append(f(r.get('sysSettlementCnyMoney')))
-        add[c] = add.get(c, 0) + f(r.get('addNumber'))
+        v = f(r.get('addNumber'))
+        add[c] = add.get(c, 0) + v
         rech[c] = rech.get(c, 0) + f(r.get('rechargeMoney'))
         rn[c] = rn.get(c, 0) + f(r.get('rechargeNumber'))
+        bicost[c] = bicost.get(c, 0) + f(r.get('sysSettlementCnyMoney'))
+        add_by_day.setdefault(c, {})[r['statDate']] = v
 
-    def is_snapshot(c):
-        """CPT 周期快照：整段日期消耗恒定且 > 0"""
-        v = cost_series.get(c, [])
-        return len(v) > 1 and len(set(v)) == 1 and v[0] > 0
+    # ---- 结算单：成本的唯一来源 ----
+    print('[INFO] 拉结算单（createTime 落在当月）…')
+    srs = page_all('settlementReportPage', Q_SR,
+                   {'createTimeStart': start + ' 00:00:00', 'createTimeEnd': end + ' 23:59:59'})
+    srs = [x for x in srs if x.get('channelCode') in meta]
+    print('[INFO] 命中当月新码的结算单 %d 张，覆盖 %d 个码'
+          % (len(srs), len({x['channelCode'] for x in srs})))
+
+    def daterange(a, b):
+        d0 = datetime.date.fromisoformat(a)
+        d1 = datetime.date.fromisoformat(b)
+        out = []
+        while d0 <= d1:
+            out.append(d0.isoformat())
+            d0 += datetime.timedelta(days=1)
+        return out
+
+    # 把每张结算单的消耗/实际结算按结算周期分摊到天（按当日新增占比，无新增则平均）
+    cost_day = {}     # code -> {date: 分摊消耗}
+    settled_day = {}  # code -> {date: 分摊实际结算}
+    sr_consumed = sr_settled = 0.0
+    for x in srs:
+        c = x['channelCode']
+        st = (x.get('startTime') or '')[:10]
+        sp = (x.get('stopTime') or '')[:10] or st
+        if not st:
+            continue
+        # 裁剪到当月
+        lo = max(st, start)
+        hi = min(sp, end)
+        if lo > hi:
+            continue
+        days_ = daterange(lo, hi)
+        co = f(x.get('consumedCnyMoney'))
+        se = f(x.get('actualSettlementCnyMoney'))
+        sr_consumed += co
+        sr_settled += se
+        w = {d: add_by_day.get(c, {}).get(d, 0.0) for d in days_}
+        tw = sum(w.values())
+        for d in days_:
+            share = (w[d] / tw) if tw > 0 else (1.0 / len(days_))
+            cost_day.setdefault(c, {})[d] = cost_day.setdefault(c, {}).get(d, 0.0) + co * share
+            settled_day.setdefault(c, {})[d] = settled_day.setdefault(c, {}).get(d, 0.0) + se * share
 
     def cost(c):
-        """该码在整月的真实消耗：快照型只计一次，否则按日累加"""
-        v = cost_series.get(c, [])
-        return v[0] if is_snapshot(c) else sum(v)
+        return sum(cost_day.get(c, {}).values())
 
-    def row_cost(r):
-        """单行消耗：快照型按有数天数均摊，保证任意区间可求和"""
-        c = r['channelCode']
-        if is_snapshot(c):
-            return cost_series[c][0] / len(cost_series[c])
-        return f(r.get('sysSettlementCnyMoney'))
+    def settled(c):
+        return sum(settled_day.get(c, {}).values())
 
     # 每日 × 分桶：纯免费 / 半收费 / 付费，以及 新供应商 / 老供应商
     def blank():
-        return {'a': 0.0, 'c': 0.0, 'r': 0.0, 'u': 0.0}
+        return {'a': 0.0, 'c': 0.0, 'r': 0.0, 'u': 0.0, 's': 0.0}
     daily = {}
+
+    def slot(d):
+        return daily.setdefault(d, {'pure': blank(), 'half': blank(), 'paid': blank(),
+                                    'ns': blank(), 'os': blank(), 'ac': set()})
+
     for r in rows:
         c = r['channelCode']
         label = meta[c]['productModelLabel']
         bkey = 'pure' if label == '免费' else ('half' if label == '半收费' else 'paid')
         skey = 'ns' if meta[c]['channelSupplierInfoId'] in sup_ids else 'os'
-        d = daily.setdefault(r['statDate'], {'pure': blank(), 'half': blank(), 'paid': blank(),
-                                             'ns': blank(), 'os': blank(), 'ac': set()})
-        v = f(r.get('addNumber')); rc = row_cost(r)
+        d = slot(r['statDate'])
+        v = f(r.get('addNumber'))
         for k in (bkey, skey):
             d[k]['a'] += v
-            d[k]['c'] += rc
             d[k]['r'] += f(r.get('rechargeMoney'))
             d[k]['u'] += f(r.get('rechargeNumber'))
         if v > 0:
             d['ac'].add(c)
+    # 成本单独灌：结算周期可能覆盖没有 BI 行的日子
+    for c, dm in cost_day.items():
+        label = meta[c]['productModelLabel']
+        bkey = 'pure' if label == '免费' else ('half' if label == '半收费' else 'paid')
+        skey = 'ns' if meta[c]['channelSupplierInfoId'] in sup_ids else 'os'
+        for d, v in dm.items():
+            slot(d)[bkey]['c'] += v
+            slot(d)[skey]['c'] += v
+    for c, dm in settled_day.items():
+        label = meta[c]['productModelLabel']
+        bkey = 'pure' if label == '免费' else ('half' if label == '半收费' else 'paid')
+        skey = 'ns' if meta[c]['channelSupplierInfoId'] in sup_ids else 'os'
+        for d, v in dm.items():
+            slot(d)[bkey]['s'] += v
+            slot(d)[skey]['s'] += v
 
     days = sorted(d for d, x in daily.items()
-                  if (x['pure']['a'] + x['half']['a'] + x['paid']['a']) > 0)
-    if not days:
-        sys.exit('[ERROR] BI 明细没有任何有新增的日期，疑似数据异常。')
+                  if (x['pure']['a'] + x['half']['a'] + x['paid']['a']) > 0
+                  or (x['pure']['c'] + x['half']['c'] + x['paid']['c']) > 0
+                  or (x['pure']['s'] + x['half']['s'] + x['paid']['s']) > 0)
 
     tot_add = sum(add.values())
     tot_cost = sum(cost(c) for c in codes)
+    tot_settled = sum(settled(c) for c in codes)
+    tot_bicost = sum(bicost.values())
     tot_rech = sum(rech.values())
     tot_rn = sum(rn.values())
 
@@ -248,6 +326,7 @@ def main():
                 'zero': sum(1 for c in cs if add.get(c, 0) <= 0),
                 'closed': sum(1 for c in cs if meta[c]['statusLabel'] == '已关闭'),
                 'add': int(a), 'cost': round(sum(cost(c) for c in cs), 2),
+                'settled': round(sum(settled(c) for c in cs), 2),
                 'recharge': round(sum(rech.get(c, 0) for c in cs), 2),
                 'rechargeUsers': int(sum(rn.get(c, 0) for c in cs))}
 
@@ -320,15 +399,17 @@ def main():
                   'zero': sum(1 for c in codes if add.get(c, 0) <= 0),
                   'closed': sum(1 for c in codes if meta[c]['statusLabel'] == '已关闭')},
         'totals': {'add': int(tot_add), 'cost': round(tot_cost, 2),
+                   'settled': round(tot_settled, 2), 'biCost': round(tot_bicost, 2),
+                   'settlements': len(srs),
                    'recharge': round(tot_rech, 2), 'rechargeUsers': int(tot_rn)},
         'split': split,
         'subSplit': sub_split,
         'supplierSplit': supplier_split,
         'daily': [dict(
             d=d,
-            pure=[int(daily[d]['pure']['a']), round(daily[d]['pure']['c'], 2), round(daily[d]['pure']['r'], 2), int(daily[d]['pure']['u'])],
-            half=[int(daily[d]['half']['a']), round(daily[d]['half']['c'], 2), round(daily[d]['half']['r'], 2), int(daily[d]['half']['u'])],
-            paid=[int(daily[d]['paid']['a']), round(daily[d]['paid']['c'], 2), round(daily[d]['paid']['r'], 2), int(daily[d]['paid']['u'])],
+            pure=[int(daily[d]['pure']['a']), round(daily[d]['pure']['c'], 2), round(daily[d]['pure']['r'], 2), int(daily[d]['pure']['u']), round(daily[d]['pure']['s'], 2)],
+            half=[int(daily[d]['half']['a']), round(daily[d]['half']['c'], 2), round(daily[d]['half']['r'], 2), int(daily[d]['half']['u']), round(daily[d]['half']['s'], 2)],
+            paid=[int(daily[d]['paid']['a']), round(daily[d]['paid']['c'], 2), round(daily[d]['paid']['r'], 2), int(daily[d]['paid']['u']), round(daily[d]['paid']['s'], 2)],
             ns=[int(daily[d]['ns']['a']), round(daily[d]['ns']['c'], 2)],
             os=[int(daily[d]['os']['a']), round(daily[d]['os']['c'], 2)],
             ac=len(daily[d]['ac']),
@@ -360,8 +441,10 @@ def main():
         sys.exit('[ERROR] 建档日渠道码之和 %d ≠ 新开渠道码 %d' % (sum(x['codes'] for x in created), len(codes)))
     if sum(x['closed'] for x in created) != data['codes']['closed']:
         sys.exit('[ERROR] 建档日停线码之和 ≠ 停线总数')
-    if tot_cost > tot_add * 200 and tot_add > 0:
-        sys.exit('[ERROR] 单新增成本 %.1f 异常偏高，疑似 CPT 周期快照被按天累加。' % (tot_cost / tot_add))
+    if abs(tot_cost - sr_consumed) > max(1.0, sr_consumed * 0.001):
+        sys.exit('[ERROR] 分摊后消耗 %.2f ≠ 结算单消耗合计 %.2f' % (tot_cost, sr_consumed))
+    if tot_add > 0 and tot_cost / tot_add > 50:
+        sys.exit('[ERROR] 获客成本 %.1f 异常偏高，先核结算单口径。' % (tot_cost / tot_add))
 
     new_block = 'const channelData = ' + js(data) + ';'
     pat = re.compile(r'const channelData = \{[\s\S]*?\n\};')
@@ -373,8 +456,11 @@ def main():
         print('[OK] 渠道码数据无变化，未写入。')
         return
     open('index.html', 'w', encoding='utf-8').write(html_new)
-    print('[OK] 渠道码数据已写入：供应商 %d 家 · 渠道码 %d 个 · 新增 %d · 消耗 %.0f · 区间 %s~%s（%d天）'
-          % (len(sups), len(codes), int(tot_add), tot_cost, days[0], days[-1], len(days)))
+    print('[OK] 渠道码数据已写入：供应商 %d 家 · 渠道码 %d 个 · 新增 %d · 结算单消耗 %.0f（%d 张）· 实际结算 %.0f · 区间 %s~%s（%d天）'
+          % (len(sups), len(codes), int(tot_add), tot_cost, len(srs), tot_settled, days[0], days[-1], len(days)))
+    print('     获客成本 %.3f  （BI 宽表消耗仅 %.0f，覆盖 %.0f%%，故不采用）'
+          % (tot_cost / tot_add if tot_add else 0, tot_bicost,
+             tot_bicost / tot_cost * 100 if tot_cost else 0))
     print('     免费类 新增 %d / 消耗 %.0f ；付费类 新增 %d / 消耗 %.0f'
           % (split[0]['add'], split[0]['cost'], split[1]['add'], split[1]['cost']))
 
