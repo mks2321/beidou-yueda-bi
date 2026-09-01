@@ -372,6 +372,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;cursor:pointer;outline:none;
       letter-spacing:0.05em;margin-right:4px;
     ">
+      <option value="9月">2026年9月</option>
       <option value="8月">2026年8月</option>
       <option value="7月">2026年7月</option>
       <option value="6月">2026年6月</option>
@@ -4279,6 +4280,8 @@ const ordersJun = [
 // ║              多月份数据 — 支持 4月/5月 切换                        ║
 // ╚══════════════════════════════════════════════════════════════════╝
 
+const ordersSep = [];
+
 const ordersAug = [
   ['2026/8/3','17 禁漫天堂','收费','ugdh17jm','王勃','CPT','渠道续费',337,400,1247.98,'外部'],
   ['2026/8/3','蓝友','收费','ugnany001','李漫妮','CPT','新开预付',0,0,19999.94,'外部'],
@@ -6832,6 +6835,25 @@ const channelData = {
 };
 
 const monthConfigs = {
+  '9月': {
+    label: '2026年9月',
+    lastUpdated: '待更新（等9月源表数据完善）',
+    products: [
+
+    ],
+    dailyData: {
+
+    },
+    personalData: {
+      people: [
+
+      ],
+      daily: [
+
+      ]
+    },
+    orders: ordersSep
+  },
   '8月': {
     label: '2026年8月',
     lastUpdated: '2026-09-01 03:16',
