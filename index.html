@@ -7365,7 +7365,7 @@ const _wlActive = () => Array.isArray(productWhitelist) && productWhitelist.leng
 const wlProducts = arr => _wlActive() ? (arr || []).filter(p => productWhitelist.includes(p.name)) : arr;
 const wlDaily = obj => { if (!_wlActive() || !obj) return obj; const o = {}; for (const k in obj) if (productWhitelist.includes(k)) o[k] = obj[k]; return o; };
 
-let currentMonth = '8月';
+let currentMonth = '9月';
 let products = wlProducts(monthConfigs[currentMonth].products);
 let dailyData = wlDaily(monthConfigs[currentMonth].dailyData);
 let activeOrders = monthConfigs[currentMonth].orders;

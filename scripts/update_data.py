@@ -9,12 +9,12 @@
 import csv, re, io, sys, urllib.request, subprocess, datetime
 
 SHEETS = {
-    # 个人（充值/盒子）：2026-08 起改用新表 1EeFxGu...
-    'charge': ('1EeFxGu6gOrERZ0RYw6ZYRN_qhWslvp44bkGt47BlJdA', '0'),
-    'box':    ('1EeFxGu6gOrERZ0RYw6ZYRN_qhWslvp44bkGt47BlJdA', '700729194'),
-    'orders': ('1shq9fF7r7r5WhywOPA2yJ4bpVstQQC0e2VTWWk2kqmw', '0'),  # 8月订单/请款流水
-    # 收费+免费产品：一张老格式表 1vpnLn，两段(8月-收费APP / 8月-免费盒子)，含目标+预算+每日
-    'prodAll': ('1vpnLnkImRRr6EPMlGgLlTvTFvcNMOzjbto--qbBM0ss', '0'),
+    # 2026-09：个人表「9月-渠道投放每日业绩」两 tab：收费段 gid0 / 免费段 gid122581593（每人4列 新增/充值/请款/线路，同8月结构）
+    'charge': ('13i4-Bvy36WdltmFGkakvON75BoTQLeoCbtfwKxHsGYw', '0'),
+    'box':    ('13i4-Bvy36WdltmFGkakvON75BoTQLeoCbtfwKxHsGYw', '122581593'),
+    'orders': ('1kwkeJX3OhaSYOcbV_1uAtc9Bk2bRzLrc0FM6WRo6x2Q', '0'),  # 9月订单/请款流水（18列同8月）
+    # 收费+免费产品：老格式两段，含目标+预算+每日。段标题仍写「8月-…」，parse_month_section 按后缀匹配。
+    'prodAll': ('1GLJvzh98by9PHGQj671jwZOneiF8cOk2GnQNuGTKTdE', '0'),
 }
 
 def fetch(key):
@@ -47,13 +47,14 @@ def norm(s):
     return re.sub(r'\s+', '', (s or '').strip())
 
 # ---------- 个人表（按名字行动态定位） ----------
+# 2026-09：个人表分「收费段」「免费段」。同时出现在两段的8人拆 xx(收费)/xx(免费)；收费专属4人不加后缀；悦达不收录(跳过)。
 CHARGE_NAMES = {norm(a): b for a, b in [
-    ('马奎斯','马奎斯'),('李漫妮','李漫妮'),('赵尘','赵尘'),('范玮琪','范玮琪'),('王勃','王勃'),
-    ('双喜 / 聂淮序','双喜/聂淮序'),('聂淮序','双喜/聂淮序'),('张伟','张伟'),('渠道中心','渠道中心'),
-    ('无极导量','无极导量'),('内部导量','内部导量'),
-    ('尹森','尹森(收费)'),('徐晃','徐晃(收费)')]}   # 8月起尹森/徐晃进收费个人表，与免费拆开
-BOX_NAMES = {norm(a): b for a, b in [('张伟 (金予)','张伟(金予)'), ('金予','张伟(金予)'),
-    ('尹森','尹森(免费)'),('徐晃','徐晃(免费)')]}   # 8月盒子=免费渠道人员
+    ('马奎斯','马奎斯'),('李漫妮','李漫妮'),('渠道中心','渠道中心'),('无极导量','无极导量'),
+    ('赵尘','赵尘(收费)'),('范玮琪','范玮琪(收费)'),('王勃','王勃(收费)'),('聂淮序','聂淮序(收费)'),
+    ('李蓓蓓','李蓓蓓(收费)'),('尹森','尹森(收费)'),('徐晃','徐晃(收费)'),('罗冰','罗冰(收费)')]}
+BOX_NAMES = {norm(a): b for a, b in [
+    ('尹森','尹森(免费)'),('徐晃','徐晃(免费)'),('罗冰','罗冰(免费)'),('赵尘','赵尘(免费)'),
+    ('范玮琪','范玮琪(免费)'),('王勃','王勃(免费)'),('聂淮序','聂淮序(免费)'),('李蓓蓓','李蓓蓓(免费)')]}
 
 def parse_personal(rows, name_map, mlabel):
     namerow = rows[0]
@@ -140,7 +141,8 @@ PAID_MAP = {'抖音Max':'良淫（抖阴Max）','51动漫':'51动漫','PornHub':
     '91短视频':'91短视频','暗网禁区':'暗网禁区','萝莉岛APP':'萝莉岛APP','51品茶':'51品茶','海角乱伦社区':'海角乱伦社区',
     'TikTok成人版':'TikTok成人版','AI色色':'Al色色','91妻友':'妻友','草榴社区':'草榴社区',
     '91鬼父DX-106':'91鬼父DX-106','小黄片DX-106(原91鬼父)':'91鬼父DX-106','17禁漫天堂':'禁漫天堂'}
-FREE_MAP = {'51TikTok破解':'51tiktok破解','Pornhub免费版':'pornhub免费版','91成人盒子[GA]':'91成人盒子'}
+FREE_MAP = {'51TikTok破解':'51tiktok破解','Pornhub免费版':'pornhub免费版','91成人盒子[GA]':'91成人盒子',
+    '91成人盒子[GA]片多多破解[91成人盒子GA]':'91成人盒子'}   # 9月改了全名，仍归一到 91成人盒子
 
 def map_name(sheet_name, mp):
     if sheet_name in mp:
@@ -273,13 +275,15 @@ def parse_paid_new(rows, tb, mlabel, dprefix):
 def parse_month_section(rows, label, typ, dprefix):
     """当月老格式产品表的一段(收费/免费)。列: [2]目标 [4]开支预算 [5]总新增 [9]总请款；
        每日7列块从[10]起：新增[10]，请款[16]，充值列(收费[14]/免费[15])。跳过前导空日。"""
+    # 按后缀关键字匹配段标题（收费APP/免费盒子），忽略月份前缀——9月表段标题仍写「8月-…」
+    key = norm(label.split('-')[-1])
     start = None
     for i, r in enumerate(rows):
-        if r and norm(r[0]) == norm(label):
+        if r and r[0] and key in norm(r[0]):
             start = i + 2   # 跳过段标题行 + 子表头行
             break
     if start is None:
-        sys.exit(f'[ERROR] 产品表找不到段 “{label}”')
+        sys.exit(f'[ERROR] 产品表找不到段 “{label}”（按后缀 {key} 匹配失败）')
     rc_off = 14 if typ == '付费' else 15
     mp = PAID_MAP if typ == '付费' else FREE_MAP
     out = []
