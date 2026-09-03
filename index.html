@@ -6946,18 +6946,18 @@ const ordersJul = [
 
 // ===== 渠道码分析数据（由 scripts/update_channel.py 每日重建，勿手改）=====
 const channelData = {
-  updated: '2026-09-03 20:10',
+  updated: '2026-09-04 00:43',
   period: {
     start: '2026-09-01',
     end: '2026-09-03',
     days: 3
   },
   suppliers: {
-    total: 41,
-    withCode: 41,
-    withVolume: 25,
+    total: 48,
+    withCode: 48,
+    withVolume: 26,
     status: [
-      { name: '合作中', count: 30 },
+      { name: '合作中', count: 37 },
       { name: '测试中', count: 6 },
       { name: '待开发', count: 3 },
       { name: '待测试', count: 1 },
@@ -6965,42 +6965,42 @@ const channelData = {
     ]
   },
   codes: {
-    total: 149,
-    active: 78,
-    zero: 71,
-    closed: 3
+    total: 165,
+    active: 80,
+    zero: 85,
+    closed: 4
   },
   totals: {
-    add: 10029,
-    cost: 102041.56,
-    paidOut: 186013,
-    pending: 61654.5,
+    add: 10418,
+    cost: 108499.81,
+    paidOut: 244236,
+    pending: 64889.75,
     biCost: 12381.5,
-    settlements: 191,
+    settlements: 210,
     recharge: 1137,
     rechargeUsers: 7
   },
   split: [
-    { name: '免费类', codes: 117, active: 60, zero: 57, closed: 3, add: 9469, cost: 98260.44, paidOut: 144000, pending: 47890.48, recharge: 38, rechargeUsers: 2 },
-    { name: '付费类', codes: 32, active: 18, zero: 14, closed: 0, add: 560, cost: 3781.12, paidOut: 42013, pending: 13764.02, recharge: 1099, rechargeUsers: 5 }
+    { name: '免费类', codes: 128, active: 62, zero: 66, closed: 4, add: 9858, cost: 103321.11, paidOut: 177223, pending: 49728.15, recharge: 38, rechargeUsers: 2 },
+    { name: '付费类', codes: 37, active: 18, zero: 19, closed: 0, add: 560, cost: 5178.7, paidOut: 67013, pending: 15161.6, recharge: 1099, rechargeUsers: 5 }
   ],
   subSplit: [
-    { name: '纯免费', codes: 73, active: 36, zero: 37, closed: 1, add: 7295, cost: 81329.71, paidOut: 111800, pending: 33986.71, recharge: 38, rechargeUsers: 2 },
-    { name: '半收费', codes: 44, active: 24, zero: 20, closed: 2, add: 2174, cost: 16930.73, paidOut: 32200, pending: 13903.77, recharge: 0, rechargeUsers: 0 }
+    { name: '纯免费', codes: 82, active: 37, zero: 45, closed: 1, add: 7501, cost: 85266.52, paidOut: 133523, pending: 46200.52, recharge: 38, rechargeUsers: 2 },
+    { name: '半收费', codes: 46, active: 25, zero: 21, closed: 3, add: 2357, cost: 18054.59, paidOut: 43700, pending: 3527.63, recharge: 0, rechargeUsers: 0 }
   ],
   supplierSplit: [
-    { name: '新供应商', codes: 90, active: 51, zero: 39, closed: 2, add: 3307, cost: 81412.75, paidOut: 131013, pending: 48798.99, recharge: 1099, rechargeUsers: 5 },
-    { name: '老供应商', codes: 59, active: 27, zero: 32, closed: 1, add: 6722, cost: 20628.81, paidOut: 55000, pending: 12855.51, recharge: 38, rechargeUsers: 2 }
+    { name: '新供应商', codes: 103, active: 53, zero: 50, closed: 2, add: 3696, cost: 83763.34, paidOut: 162236, pending: 49926.58, recharge: 1099, rechargeUsers: 5 },
+    { name: '老供应商', codes: 62, active: 27, zero: 35, closed: 2, add: 6722, cost: 24736.47, paidOut: 82000, pending: 14963.17, recharge: 38, rechargeUsers: 2 }
   ],
   daily: [
-    { d: '2026-09-01', pure: [1344, 1394.05, 0, 0, 25800, 10328.05], half: [367, 1296.2, 0, 0, 32200, 2042.54], paid: [272, 2131.58, 999, 4, 2013, 2064.48], ns: [726, 3373.39], os: [1257, 1448.44], ac: 47 },
-    { d: '2026-09-02', pure: [5951, 4935.66, 38, 2, 11000, 13658.66], half: [1807, 15634.53, 0, 0, 0, 1861.23], paid: [288, 1649.54, 100, 1, 20000, 1649.54], ns: [2581, 3039.36], os: [5465, 19180.37], ac: 75 },
-    { d: '2026-09-03', pure: [0, 75000, 0, 0, 75000, 10000], half: [0, 0, 0, 0, 0, 10000], paid: [0, 0, 0, 0, 20000, 10050], ns: [0, 75000], os: [0, 0], ac: 0 }
+    { d: '2026-09-01', pure: [1344, 2098.13, 0, 0, 28800, 8032.13], half: [367, 1512.69, 0, 0, 33700, 759.03], paid: [272, 2582.48, 999, 4, 2013, 2515.38], ns: [726, 4048.24], os: [1257, 2145.06], ac: 47 },
+    { d: '2026-09-02', pure: [6157, 8168.39, 38, 2, 19723, 8168.39], half: [1990, 16541.9, 0, 0, 0, 2768.6], paid: [288, 2224.02, 100, 1, 20000, 2224.02], ns: [2970, 4342.89], os: [5465, 22591.41], ac: 77 },
+    { d: '2026-09-03', pure: [0, 75000, 0, 0, 85000, 30000], half: [0, 0, 0, 0, 10000, 0], paid: [0, 372.21, 0, 0, 45000, 10422.21], ns: [0, 75372.21], os: [0, 0], ac: 0 }
   ],
   created: [
     { d: '2026-09-01', sup: 21, codes: 63, closed: 1, free: 50, paid: 13 },
     { d: '2026-09-02', sup: 12, codes: 47, closed: 2, free: 36, paid: 11 },
-    { d: '2026-09-03', sup: 8, codes: 39, closed: 0, free: 31, paid: 8 }
+    { d: '2026-09-03', sup: 15, codes: 55, closed: 1, free: 42, paid: 13 }
   ]
 };
 
