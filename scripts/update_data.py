@@ -313,7 +313,9 @@ def parse_month_section(rows, label, typ, dprefix):
             elif d <= 14: w[1] += nv
         s = sum(x[1] for x in daily)
         if s != total:
-            sys.exit(f'[ERROR] 产品 {nm}({code}) 每日新增和 {s} != 总新增 {total}')
+            # 维护方常漏填/公式失效导致「总新增」列(=0或对不上)，但每日明细是对的、也是看板真正要用的 → 以每日之和为准，不再致命退出
+            print(f'[WARN] 产品 {nm}({code}) 每日新增和 {s} != 总新增列 {total}，以每日之和为准')
+            total = s
         comp = round(total/target*100, 2) if target > 0 else 0
         crate = round(consume/budget*100, 2) if budget > 0 else 0
         cpa = round(consume/total, 2) if total > 0 else 0
