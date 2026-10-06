@@ -10,9 +10,9 @@ import csv, re, io, sys, urllib.request, subprocess, datetime
 
 SHEETS = {
     # 2026-10：Drive 文件夹「(10月) BI看板-渠道拓展」。gid=None 表示「待接入」（表未公开/gid未知）→ 跳过该源、保留看板现有数据。
-    # 个人表「10月-渠道投放每日业绩」两 tab（收费APP / 免费APP，每人4列同9月）——待公开后确认 gid
-    'charge': ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', None),
-    'box':    ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', None),
+    # 个人表「10月-渠道投放每日业绩」两 tab：收费APP gid0 / 免费APP gid608852903（每人4列同9月；10月无李蓓蓓，悦达照旧跳过）
+    'charge': ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', '0'),
+    'box':    ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', '608852903'),
     'orders': ('1qJ2Oxqfu4VeaOVrwbVNbsfGWz0PE7L1zudGvApo9vVk', None),  # 「10月-渠道支出明细」18列同9月——待公开
     # 收费+免费产品「10月-渠道投放产品日」：老格式两段，列结构同9月
     'prodAll': ('16B6kB1Jky224o3HuAEgpoXuTFqD75QZw65n-VKZ2e6c', '0'),
