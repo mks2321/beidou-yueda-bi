@@ -9,13 +9,17 @@
 import csv, re, io, sys, urllib.request, subprocess, datetime
 
 SHEETS = {
-    # 2026-09：个人表「9月-渠道投放每日业绩」两 tab：收费段 gid0 / 免费段 gid122581593（每人4列 新增/充值/请款/线路，同8月结构）
-    'charge': ('13i4-Bvy36WdltmFGkakvON75BoTQLeoCbtfwKxHsGYw', '0'),
-    'box':    ('13i4-Bvy36WdltmFGkakvON75BoTQLeoCbtfwKxHsGYw', '122581593'),
-    'orders': ('1kwkeJX3OhaSYOcbV_1uAtc9Bk2bRzLrc0FM6WRo6x2Q', '0'),  # 9月订单/请款流水（18列同8月）
-    # 收费+免费产品：老格式两段，含目标+预算+每日。段标题仍写「8月-…」，parse_month_section 按后缀匹配。
-    'prodAll': ('1GLJvzh98by9PHGQj671jwZOneiF8cOk2GnQNuGTKTdE', '0'),
+    # 2026-10：Drive 文件夹「(10月) BI看板-渠道拓展」。gid=None 表示「待接入」（表未公开/gid未知）→ 跳过该源、保留看板现有数据。
+    # 个人表「10月-渠道投放每日业绩」两 tab（收费APP / 免费APP，每人4列同9月）——待公开后确认 gid
+    'charge': ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', None),
+    'box':    ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', None),
+    'orders': ('1qJ2Oxqfu4VeaOVrwbVNbsfGWz0PE7L1zudGvApo9vVk', None),  # 「10月-渠道支出明细」18列同9月——待公开
+    # 收费+免费产品「10月-渠道投放产品日」：老格式两段，列结构同9月
+    'prodAll': ('16B6kB1Jky224o3HuAEgpoXuTFqD75QZw65n-VKZ2e6c', '0'),
 }
+
+def ready(key):
+    return SHEETS[key][1] is not None
 
 def fetch(key):
     sid, gid = SHEETS[key]
@@ -385,12 +389,14 @@ def main():
     if f"'{mlabel}': {{" not in html:
         sys.exit(f'[ERROR] monthConfigs 无当月键 {mlabel}，需手工建框架')
 
-    charge = fetch('charge'); box = fetch('box'); orders_raw = fetch('orders')
     prod_all = fetch('prodAll')
-
-    people, pdaily, names = build_personal(charge, box, mlabel, dprefix)
-    ords = build_orders(orders_raw)
     allp = build_products(prod_all, dprefix, mlabel)
+    do_personal = ready('charge') and ready('box')
+    people, pdaily, names = build_personal(fetch('charge'), fetch('box'), mlabel, dprefix) if do_personal else ([], [], [])
+    ords = build_orders(fetch('orders')) if ready('orders') else []
+    for k, on in (('个人', do_personal), ('订单', ready('orders'))):
+        if not on:
+            print(f'[WARN] {k}源表待接入(SHEETS gid=None)，本次跳过、保留看板现有{k}数据')
 
     # 当月块边界
     six = html.index(f"'{mlabel}': {{")
@@ -405,11 +411,13 @@ def main():
     # 先只替换数据（不动 lastUpdated），用于判断数据是否真的变化
     block = replace_inner(block, 'products: [\n', '\n    ],', js_products(allp))
     block = replace_inner(block, 'dailyData: {\n', '\n    },', js_pdata(allp))
-    block = replace_inner(block, 'personalData: {\n', '\n    },',
-                          '      people: [\n' + js_people(people) + '\n      ],\n      daily: [\n' +
-                          js_pdaily(pdaily, names) + '\n      ]')
+    if do_personal:
+        block = replace_inner(block, 'personalData: {\n', '\n    },',
+                              '      people: [\n' + js_people(people) + '\n      ],\n      daily: [\n' +
+                              js_pdaily(pdaily, names) + '\n      ]')
     html_new = html[:six] + block + html[end:]
-    html_new = re.sub(rf"const {ovar} = \[[\s\S]*?\];", js_orders(ords, ovar), html_new, count=1)
+    if ready('orders'):
+        html_new = re.sub(rf"const {ovar} = \[[\s\S]*?\];", js_orders(ords, ovar), html_new, count=1)
 
     if html_new == html:
         print(f'[OK] {mlabel} 数据无变化，未写入（个人{len(people)}人 产品{len(allp)}个 订单{len(ords)}条）')
