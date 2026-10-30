@@ -392,6 +392,10 @@ def main():
 
     prod_all = fetch('prodAll')
     allp = build_products(prod_all, dprefix, mlabel)
+    # 整表为0 = 源表被清空或换成下月模板，不能覆盖当月已有数据
+    keep_products = sum(p['total'] for p in allp) == 0
+    if keep_products:
+        print('[WARN] 产品表总新增全为0（可能被清空/换成下月模板），本次跳过、保留看板现有产品数据')
     do_personal = ready('charge') and ready('box')
     people, pdaily, names = build_personal(fetch('charge'), fetch('box'), mlabel, dprefix) if do_personal else ([], [], [])
     ords = build_orders(fetch('orders')) if ready('orders') else []
@@ -410,8 +414,9 @@ def main():
     ovar = om.group(1) if om else 'ordersJun'
 
     # 先只替换数据（不动 lastUpdated），用于判断数据是否真的变化
-    block = replace_inner(block, 'products: [\n', '\n    ],', js_products(allp))
-    block = replace_inner(block, 'dailyData: {\n', '\n    },', js_pdata(allp))
+    if not keep_products:
+        block = replace_inner(block, 'products: [\n', '\n    ],', js_products(allp))
+        block = replace_inner(block, 'dailyData: {\n', '\n    },', js_pdata(allp))
     if do_personal:
         block = replace_inner(block, 'personalData: {\n', '\n    },',
                               '      people: [\n' + js_people(people) + '\n      ],\n      daily: [\n' +
