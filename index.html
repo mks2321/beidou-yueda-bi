@@ -349,6 +349,7 @@ tbody td:not(:first-child) { text-align:right; font-family:'JetBrains Mono','SF 
       font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;cursor:pointer;outline:none;
       letter-spacing:0.05em;margin-right:4px;
     ">
+      <option value="11月">2026年11月</option>
       <option value="10月">2026年10月</option>
       <option value="9月">2026年9月</option>
       <option value="8月">2026年8月</option>
@@ -4121,6 +4122,9 @@ const ordersJun = [
 // ╔══════════════════════════════════════════════════════════════════╗
 // ║              多月份数据 — 支持 4月/5月 切换                        ║
 // ╚══════════════════════════════════════════════════════════════════╝
+
+const ordersNov = [
+];
 
 const ordersOct = [
   ['2026/10/2','黄果短剧','收费','ughg161n1','范玮琪','CPT','新开预付',710,600,45100,'外部'],
@@ -10281,6 +10285,76 @@ const channelData = {
 };
 
 const monthConfigs = {
+  '11月': {
+    label: '2026年11月',
+    lastUpdated: '待录入数据',
+    products: [
+    { name:'Pornhub中文版', type:'付费', target:100000, budget:202200, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'91Pron', type:'付费', target:80000, budget:508200, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'91短视频', type:'付费', target:130000, budget:148200, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'暗网禁区', type:'付费', target:30000, budget:175000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'洛丽塔', type:'付费', target:130000, budget:184000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'海角乱伦社区', type:'付费', target:100000, budget:319100, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'TikTok成人版', type:'付费', target:300000, budget:822300, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'ai引擎', type:'付费', target:80000, budget:143500, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'妻友', type:'付费', target:30000, budget:47000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'禁果短剧', type:'付费', target:200000, budget:202300, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'蓝果短剧', type:'付费', target:15000, budget:141000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'禁漫天堂', type:'付费', target:300000, budget:744500, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'男同网APP', type:'付费', target:150000, budget:228700, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'黄果短剧[DX-147]', type:'付费', target:950000, budget:4264000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'黄果短剧[DX-161]', type:'付费', target:855000, budget:2305000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'51tiktok破解', type:'免费', target:200000, budget:325000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'pornhub免费版', type:'免费', target:300000, budget:560000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'91成人盒子', type:'免费', target:250000, budget:435000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'樱花动漫', type:'免费', target:250000, budget:330000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    { name:'油管破解', type:'免费', target:550000, budget:511000, w1:0, w2:0, total:0, consume:0, completion:0, consumeRate:0, cpa:0 },
+    ],
+    dailyData: {
+    'Pornhub中文版': [],
+    '91Pron': [],
+    '91短视频': [],
+    '暗网禁区': [],
+    '洛丽塔': [],
+    '海角乱伦社区': [],
+    'TikTok成人版': [],
+    'ai引擎': [],
+    '妻友': [],
+    '禁果短剧': [],
+    '蓝果短剧': [],
+    '禁漫天堂': [],
+    '男同网APP': [],
+    '黄果短剧[DX-147]': [],
+    '黄果短剧[DX-161]': [],
+    '51tiktok破解': [],
+    'pornhub免费版': [],
+    '91成人盒子': [],
+    '樱花动漫': [],
+    '油管破解': [],
+    },
+    personalData: {
+      people: [
+        { name:'马奎斯', target:300000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'李漫妮', target:450000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'易杰', target:500000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'范玮琪(收费)', target:650000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'王勃(收费)', target:350000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'聂淮序(收费)', target:350000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'徐晃(收费)', target:200000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'罗冰(收费)', target:50000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'无极导量', target:300000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'徐晃(免费)', target:450000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'程清(免费)', target:400000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'罗冰(免费)', target:600000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'赵尘(免费)', target:100000, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'范玮琪(免费)', target:0, actual:0, recharge:0, expense:0, completion:0 },
+        { name:'聂淮序(免费)', target:0, actual:0, recharge:0, expense:0, completion:0 },
+      ],
+      daily: [
+      ]
+    },
+    orders: ordersNov
+  },
   '10月': {
     label: '2026年10月',
     lastUpdated: '2026-11-02 02:09',
