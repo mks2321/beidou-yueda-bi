@@ -13,7 +13,7 @@ SHEETS = {
     # 个人表「11月-渠道投放每日业绩」两 tab：收费APP gid0 / 免费APP gid1317263621（每人4列同10月；免费段新增程清，悦达照旧跳过）
     'charge': ('1AkoioAiK4Py54oxWjOlVmDOReVdSNc4HwLqteNZam6U', '0'),
     'box':    ('1AkoioAiK4Py54oxWjOlVmDOReVdSNc4HwLqteNZam6U', '1317263621'),
-    'orders': ('', None),  # 11月渠道支出明细待接入（勿指向10月表，否则10月订单会写进 ordersNov）
+    'orders': ('1Mz0qxy6jZYQZsXAJ1rUXd6BZXZGbKQj9Erl56FjVoYc', '0'),  # 「11月-渠道支出明细」18列同10月
     # 收费+免费产品「11月-渠道投放产品日」：老格式两段，列结构同10月
     'prodAll': ('1C2yb0lHRmpb2H2F4UqQzTIXvL9WLjZUQ6GXzSCjObWc', '0'),
 }
