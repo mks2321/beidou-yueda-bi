@@ -9,13 +9,13 @@
 import csv, re, io, sys, urllib.request, subprocess, datetime
 
 SHEETS = {
-    # 2026-10：Drive 文件夹「(10月) BI看板-渠道拓展」。gid=None 表示「待接入」（表未公开/gid未知）→ 跳过该源、保留看板现有数据。
-    # 个人表「10月-渠道投放每日业绩」两 tab：收费APP gid0 / 免费APP gid608852903（每人4列同9月；10月无李蓓蓓，悦达照旧跳过）
-    'charge': ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', '0'),
-    'box':    ('1bXxsPg22-n-k2wRNElRf6JzEUxkAINIPh5GwRHZSyds', '608852903'),
-    'orders': ('1qJ2Oxqfu4VeaOVrwbVNbsfGWz0PE7L1zudGvApo9vVk', '0'),  # 「10月-渠道支出明细」18列同9月
-    # 收费+免费产品「10月-渠道投放产品日」：老格式两段，列结构同9月
-    'prodAll': ('16B6kB1Jky224o3HuAEgpoXuTFqD75QZw65n-VKZ2e6c', '0'),
+    # 2026-11：gid=None 表示「待接入」（表未公开/gid未知）→ 跳过该源、保留看板现有数据。
+    # 个人表「11月-渠道投放每日业绩」两 tab：收费APP gid0 / 免费APP gid1317263621（每人4列同10月；免费段新增程清，悦达照旧跳过）
+    'charge': ('1AkoioAiK4Py54oxWjOlVmDOReVdSNc4HwLqteNZam6U', '0'),
+    'box':    ('1AkoioAiK4Py54oxWjOlVmDOReVdSNc4HwLqteNZam6U', '1317263621'),
+    'orders': ('', None),  # 11月渠道支出明细待接入（勿指向10月表，否则10月订单会写进 ordersNov）
+    # 收费+免费产品「11月-渠道投放产品日」：老格式两段，列结构同10月
+    'prodAll': ('1C2yb0lHRmpb2H2F4UqQzTIXvL9WLjZUQ6GXzSCjObWc', '0'),
 }
 
 def ready(key):
@@ -58,7 +58,7 @@ CHARGE_NAMES = {norm(a): b for a, b in [
     ('赵尘','赵尘(收费)'),('范玮琪','范玮琪(收费)'),('王勃','王勃(收费)'),('聂淮序','聂淮序(收费)'),
     ('李蓓蓓','李蓓蓓(收费)'),('尹森','尹森(收费)'),('徐晃','徐晃(收费)'),('罗冰','罗冰(收费)')]}
 BOX_NAMES = {norm(a): b for a, b in [
-    ('尹森','尹森(免费)'),('徐晃','徐晃(免费)'),('罗冰','罗冰(免费)'),('赵尘','赵尘(免费)'),
+    ('尹森','尹森(免费)'),('徐晃','徐晃(免费)'),('罗冰','罗冰(免费)'),('赵尘','赵尘(免费)'),('程清','程清(免费)'),
     ('范玮琪','范玮琪(免费)'),('王勃','王勃(免费)'),('聂淮序','聂淮序(免费)'),('李蓓蓓','李蓓蓓(免费)')]}
 
 def parse_personal(rows, name_map, mlabel):
