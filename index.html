@@ -10173,126 +10173,131 @@ const ordersJul = [
 
 // ===== 渠道码分析数据（由 scripts/update_channel.py 每日重建，勿手改）=====
 const channelData = {
-  updated: '2026-11-03 05:58',
+  updated: '2026-11-04 03:52',
   period: {
-    start: '2026-11-02',
-    end: '2026-11-02',
-    days: 1
+    start: '2026-11-01',
+    end: '2026-11-03',
+    days: 3
   },
   suppliers: {
-    total: 4,
-    withCode: 3,
-    withVolume: 3,
+    total: 13,
+    withCode: 11,
+    withVolume: 9,
     status: [
-      { name: '待开发', count: 2 },
-      { name: '合作中', count: 2 }
+      { name: '合作中', count: 8 },
+      { name: '待开发', count: 5 }
     ]
   },
   codes: {
-    total: 26,
-    active: 14,
-    zero: 12,
+    total: 58,
+    active: 33,
+    zero: 25,
     closed: 0
   },
   totals: {
-    add: 4181,
-    cost: 2624.83,
-    paidOut: 0,
-    pending: 55662.83,
-    biCost: 2624.84,
-    settlements: 31,
-    recharge: 5700,
-    rechargeUsers: 78
+    add: 14769,
+    cost: 70327.63,
+    paidOut: 189425,
+    pending: 122185.63,
+    biCost: 21563.65,
+    settlements: 89,
+    recharge: 21650,
+    rechargeUsers: 270
   },
   split: [
-    { name: '免费类', codes: 14, active: 12, zero: 2, closed: 0, add: 789, cost: 990, paidOut: 0, pending: 990, recharge: 0, rechargeUsers: 0 },
-    { name: '付费类', codes: 12, active: 2, zero: 10, closed: 0, add: 3392, cost: 1634.83, paidOut: 0, pending: 54672.83, recharge: 5700, rechargeUsers: 78 }
+    { name: '免费类', codes: 21, active: 17, zero: 4, closed: 0, add: 3220, cost: 4581.1, paidOut: 0, pending: 18581.1, recharge: 0, rechargeUsers: 0 },
+    { name: '付费类', codes: 37, active: 16, zero: 21, closed: 0, add: 11549, cost: 65746.53, paidOut: 189425, pending: 103604.53, recharge: 21650, rechargeUsers: 270 }
   ],
   subSplit: [
-    { name: '纯免费', codes: 8, active: 7, zero: 1, closed: 0, add: 711, cost: 905, paidOut: 0, pending: 905, recharge: 0, rechargeUsers: 0 },
-    { name: '半收费', codes: 6, active: 5, zero: 1, closed: 0, add: 78, cost: 85, paidOut: 0, pending: 85, recharge: 0, rechargeUsers: 0 }
+    { name: '纯免费', codes: 12, active: 10, zero: 2, closed: 0, add: 2858, cost: 3855.4, paidOut: 0, pending: 11855.4, recharge: 0, rechargeUsers: 0 },
+    { name: '半收费', codes: 9, active: 7, zero: 2, closed: 0, add: 362, cost: 725.7, paidOut: 0, pending: 6725.7, recharge: 0, rechargeUsers: 0 }
   ],
   supplierSplit: [
-    { name: '新供应商', codes: 14, active: 12, zero: 2, closed: 0, add: 789, cost: 990, paidOut: 0, pending: 990, recharge: 0, rechargeUsers: 0 },
-    { name: '老供应商', codes: 12, active: 2, zero: 10, closed: 0, add: 3392, cost: 1634.83, paidOut: 0, pending: 54672.83, recharge: 5700, rechargeUsers: 78 }
+    { name: '新供应商', codes: 34, active: 27, zero: 7, closed: 0, add: 3816, cost: 8723.76, paidOut: 7160, pending: 47878.76, recharge: 3650, rechargeUsers: 26 },
+    { name: '老供应商', codes: 24, active: 6, zero: 18, closed: 0, add: 10953, cost: 61603.87, paidOut: 182265, pending: 74306.87, recharge: 18000, rechargeUsers: 244 }
   ],
   daily: [
-    { d: '2026-11-02', pure: [711, 905, 0, 0, 0, 905], half: [78, 85, 0, 0, 0, 85], paid: [3392, 1634.83, 5700, 78, 0, 54672.83], ns: [789, 990], os: [3392, 1634.83], ac: 14 }
+    { d: '2026-11-01', pure: [0, 0, 0, 0, 0, 0], half: [0, 0, 0, 0, 0, 0], paid: [513, 21688.39, 800, 4, 0, 21688.39], ns: [0, 0], os: [513, 21688.39], ac: 1 },
+    { d: '2026-11-02', pure: [711, 892.85, 0, 0, 0, 8892.85], half: [78, 112.61, 0, 0, 0, 6112.61], paid: [3962, 19013.58, 8400, 91, 49425, 24966.58], ns: [986, 3165.46], os: [3765, 16853.58], ac: 21 },
+    { d: '2026-11-03', pure: [2147, 2962.55, 0, 0, 0, 2962.55], half: [284, 613.09, 0, 0, 0, 613.09], paid: [7074, 25044.56, 12450, 175, 140000, 56949.56], ns: [2830, 5558.3], os: [6675, 23061.9], ac: 32 }
   ],
   created: [
     { d: '2026-11-01', sup: 0, codes: 7, closed: 0, free: 0, paid: 7 },
-    { d: '2026-11-02', sup: 4, codes: 19, closed: 0, free: 14, paid: 5 }
+    { d: '2026-11-02', sup: 4, codes: 19, closed: 0, free: 14, paid: 5 },
+    { d: '2026-11-03', sup: 9, codes: 31, closed: 0, free: 7, paid: 24 },
+    { d: '2026-11-04', sup: 0, codes: 1, closed: 0, free: 0, paid: 1 }
   ]
 };
 
 const monthConfigs = {
   '11月': {
     label: '2026年11月',
-    lastUpdated: '2026-11-03 02:26',
+    lastUpdated: '2026-11-04 03:52',
     products: [
-    { name:'Pornhub中文版', type:'付费', target:100000, budget:202200, w1:6579, w2:0, total:6579, consume:0, completion:6.58, consumeRate:0.0, cpa:0.0 },
-    { name:'91Pron', type:'付费', target:80000, budget:708200, w1:2950, w2:0, total:2950, consume:0, completion:3.69, consumeRate:0.0, cpa:0.0 },
-    { name:'91短视频', type:'付费', target:130000, budget:148200, w1:7604, w2:0, total:7604, consume:0, completion:5.85, consumeRate:0.0, cpa:0.0 },
-    { name:'暗网禁区', type:'付费', target:30000, budget:175000, w1:1929, w2:0, total:1929, consume:0, completion:6.43, consumeRate:0.0, cpa:0.0 },
-    { name:'洛丽塔', type:'付费', target:130000, budget:184000, w1:4328, w2:0, total:4328, consume:0, completion:3.33, consumeRate:0.0, cpa:0.0 },
-    { name:'海角乱伦社区', type:'付费', target:100000, budget:319100, w1:6882, w2:0, total:6882, consume:0, completion:6.88, consumeRate:0.0, cpa:0.0 },
-    { name:'TikTok成人版', type:'付费', target:300000, budget:1022300, w1:12591, w2:0, total:12591, consume:0, completion:4.2, consumeRate:0.0, cpa:0.0 },
-    { name:'ai引擎', type:'付费', target:80000, budget:143500, w1:309, w2:0, total:309, consume:0, completion:0.39, consumeRate:0.0, cpa:0.0 },
-    { name:'妻友', type:'付费', target:30000, budget:47000, w1:504, w2:0, total:504, consume:0, completion:1.68, consumeRate:0.0, cpa:0.0 },
-    { name:'禁果短剧', type:'付费', target:200000, budget:202300, w1:4963, w2:0, total:4963, consume:0, completion:2.48, consumeRate:0.0, cpa:0.0 },
-    { name:'蓝果短剧', type:'付费', target:15000, budget:141000, w1:564, w2:0, total:564, consume:0, completion:3.76, consumeRate:0.0, cpa:0.0 },
-    { name:'禁漫天堂', type:'付费', target:300000, budget:744500, w1:13910, w2:0, total:13910, consume:0, completion:4.64, consumeRate:0.0, cpa:0.0 },
-    { name:'男同网APP', type:'付费', target:150000, budget:228700, w1:8288, w2:0, total:8288, consume:0, completion:5.53, consumeRate:0.0, cpa:0.0 },
-    { name:'黄果短剧[DX-147]', type:'付费', target:950000, budget:4264000, w1:40311, w2:0, total:40311, consume:0, completion:4.24, consumeRate:0.0, cpa:0.0 },
-    { name:'黄果短剧[DX-161]', type:'付费', target:855000, budget:2305000, w1:28093, w2:0, total:28093, consume:0, completion:3.29, consumeRate:0.0, cpa:0.0 },
-    { name:'51tiktok破解', type:'免费', target:200000, budget:325000, w1:10849, w2:0, total:10849, consume:0, completion:5.42, consumeRate:0.0, cpa:0.0 },
-    { name:'pornhub免费版', type:'免费', target:300000, budget:560000, w1:19504, w2:0, total:19504, consume:0, completion:6.5, consumeRate:0.0, cpa:0.0 },
-    { name:'91成人盒子', type:'免费', target:250000, budget:435000, w1:10728, w2:0, total:10728, consume:0, completion:4.29, consumeRate:0.0, cpa:0.0 },
-    { name:'樱花动漫', type:'免费', target:250000, budget:330000, w1:23690, w2:0, total:23690, consume:0, completion:9.48, consumeRate:0.0, cpa:0.0 },
-    { name:'油管破解', type:'免费', target:550000, budget:511000, w1:17339, w2:0, total:17339, consume:0, completion:3.15, consumeRate:0.0, cpa:0.0 },
+    { name:'Pornhub中文版', type:'付费', target:100000, budget:202200, w1:10859, w2:0, total:10859, consume:0, completion:10.86, consumeRate:0.0, cpa:0.0 },
+    { name:'91Pron', type:'付费', target:80000, budget:708200, w1:5029, w2:0, total:5029, consume:0, completion:6.29, consumeRate:0.0, cpa:0.0 },
+    { name:'91短视频', type:'付费', target:130000, budget:148200, w1:13499, w2:0, total:13499, consume:0, completion:10.38, consumeRate:0.0, cpa:0.0 },
+    { name:'暗网禁区', type:'付费', target:30000, budget:175000, w1:3401, w2:0, total:3401, consume:0, completion:11.34, consumeRate:0.0, cpa:0.0 },
+    { name:'洛丽塔', type:'付费', target:130000, budget:184000, w1:7313, w2:0, total:7313, consume:0, completion:5.63, consumeRate:0.0, cpa:0.0 },
+    { name:'海角乱伦社区', type:'付费', target:100000, budget:319100, w1:12295, w2:0, total:12295, consume:0, completion:12.29, consumeRate:0.0, cpa:0.0 },
+    { name:'TikTok成人版', type:'付费', target:300000, budget:1022300, w1:21907, w2:0, total:21907, consume:0, completion:7.3, consumeRate:0.0, cpa:0.0 },
+    { name:'ai引擎', type:'付费', target:80000, budget:143500, w1:555, w2:0, total:555, consume:0, completion:0.69, consumeRate:0.0, cpa:0.0 },
+    { name:'妻友', type:'付费', target:30000, budget:47000, w1:924, w2:0, total:924, consume:0, completion:3.08, consumeRate:0.0, cpa:0.0 },
+    { name:'禁果短剧', type:'付费', target:200000, budget:202300, w1:7614, w2:0, total:7614, consume:0, completion:3.81, consumeRate:0.0, cpa:0.0 },
+    { name:'蓝果短剧', type:'付费', target:15000, budget:141000, w1:4298, w2:0, total:4298, consume:0, completion:28.65, consumeRate:0.0, cpa:0.0 },
+    { name:'禁漫天堂', type:'付费', target:300000, budget:744500, w1:21763, w2:0, total:21763, consume:0, completion:7.25, consumeRate:0.0, cpa:0.0 },
+    { name:'男同网APP', type:'付费', target:150000, budget:228700, w1:12650, w2:0, total:12650, consume:0, completion:8.43, consumeRate:0.0, cpa:0.0 },
+    { name:'黄果短剧[DX-147]', type:'付费', target:950000, budget:4264000, w1:68773, w2:0, total:68773, consume:0, completion:7.24, consumeRate:0.0, cpa:0.0 },
+    { name:'黄果短剧[DX-161]', type:'付费', target:855000, budget:2305000, w1:49455, w2:0, total:49455, consume:0, completion:5.78, consumeRate:0.0, cpa:0.0 },
+    { name:'51tiktok破解', type:'免费', target:200000, budget:325000, w1:17474, w2:0, total:17474, consume:0, completion:8.74, consumeRate:0.0, cpa:0.0 },
+    { name:'pornhub免费版', type:'免费', target:300000, budget:560000, w1:32675, w2:0, total:32675, consume:0, completion:10.89, consumeRate:0.0, cpa:0.0 },
+    { name:'91成人盒子', type:'免费', target:250000, budget:435000, w1:18383, w2:0, total:18383, consume:0, completion:7.35, consumeRate:0.0, cpa:0.0 },
+    { name:'樱花动漫', type:'免费', target:250000, budget:330000, w1:36562, w2:0, total:36562, consume:0, completion:14.62, consumeRate:0.0, cpa:0.0 },
+    { name:'油管破解', type:'免费', target:550000, budget:511000, w1:28192, w2:0, total:28192, consume:0, completion:5.13, consumeRate:0.0, cpa:0.0 },
     ],
     dailyData: {
-    'Pornhub中文版': [["11-01", 6579, 0, 5700]],
-    '91Pron': [["11-01", 2950, 0, 10000]],
-    '91短视频': [["11-01", 7604, 0, 14400]],
-    '暗网禁区': [["11-01", 1929, 0, 2600]],
-    '洛丽塔': [["11-01", 4328, 0, 5250]],
-    '海角乱伦社区': [["11-01", 6882, 0, 26400]],
-    'TikTok成人版': [["11-01", 12591, 0, 24680]],
-    'ai引擎': [["11-01", 309, 0, 700]],
-    '妻友': [["11-01", 504, 0, 2000]],
-    '禁果短剧': [["11-01", 4963, 0, 6000]],
-    '蓝果短剧': [["11-01", 564, 0, 2100]],
-    '禁漫天堂': [["11-01", 13910, 0, 24050]],
-    '男同网APP': [["11-01", 8288, 0, 29300]],
-    '黄果短剧[DX-147]': [["11-01", 40311, 0, 234800]],
-    '黄果短剧[DX-161]': [["11-01", 28093, 0, 143350]],
-    '51tiktok破解': [["11-01", 10849, 0, 0]],
-    'pornhub免费版': [["11-01", 19504, 0, 0]],
-    '91成人盒子': [["11-01", 10728, 0, 0]],
-    '樱花动漫': [["11-01", 23690, 0, 0]],
-    '油管破解': [["11-01", 17339, 0, 0]],
+    'Pornhub中文版': [["11-01", 6579, 0, 5700], ["11-02", 4280, 0, 7000]],
+    '91Pron': [["11-01", 2950, 0, 10000], ["11-02", 2079, 0, 8800]],
+    '91短视频': [["11-01", 7604, 0, 14400], ["11-02", 5895, 0, 13000]],
+    '暗网禁区': [["11-01", 1929, 0, 2600], ["11-02", 1472, 0, 3400]],
+    '洛丽塔': [["11-01", 4328, 0, 5250], ["11-02", 2985, 0, 5250]],
+    '海角乱伦社区': [["11-01", 6882, 0, 26400], ["11-02", 5413, 0, 18600]],
+    'TikTok成人版': [["11-01", 12591, 0, 24680], ["11-02", 9316, 0, 18800]],
+    'ai引擎': [["11-01", 309, 0, 700], ["11-02", 246, 0, 1100]],
+    '妻友': [["11-01", 504, 0, 2000], ["11-02", 420, 0, 1600]],
+    '禁果短剧': [["11-01", 4963, 0, 6000], ["11-02", 2651, 0, 4600]],
+    '蓝果短剧': [["11-01", 564, 0, 2100], ["11-02", 3734, 0, 7950]],
+    '禁漫天堂': [["11-01", 13910, 0, 24050], ["11-02", 7853, 0, 23000]],
+    '男同网APP': [["11-01", 8288, 0, 29300], ["11-02", 4362, 0, 19200]],
+    '黄果短剧[DX-147]': [["11-01", 40311, 0, 234800], ["11-02", 28462, 0, 200350]],
+    '黄果短剧[DX-161]': [["11-01", 28093, 0, 143350], ["11-02", 21362, 0, 137650]],
+    '51tiktok破解': [["11-01", 10849, 0, 0], ["11-02", 6625, 0, 0]],
+    'pornhub免费版': [["11-01", 19504, 0, 0], ["11-02", 13171, 0, 0]],
+    '91成人盒子': [["11-01", 10728, 0, 0], ["11-02", 7655, 0, 0]],
+    '樱花动漫': [["11-01", 23690, 0, 0], ["11-02", 12872, 0, 0]],
+    '油管破解': [["11-01", 17339, 0, 0], ["11-02", 10853, 0, 0]],
     },
     personalData: {
       people: [
-        { name:'马奎斯', target:300000, actual:8720, recharge:61550, expense:0, completion:2.91 },
-        { name:'李漫妮', target:450000, actual:21280, recharge:73700, expense:0, completion:4.73 },
-        { name:'易杰', target:500000, actual:18296, recharge:87200, expense:0, completion:3.66 },
-        { name:'范玮琪(收费)', target:650000, actual:38474, recharge:126400, expense:0, completion:5.92 },
-        { name:'王勃(收费)', target:350000, actual:7779, recharge:24350, expense:0, completion:2.22 },
-        { name:'聂淮序(收费)', target:350000, actual:8123, recharge:34420, expense:0, completion:2.32 },
-        { name:'徐晃(收费)', target:200000, actual:8718, recharge:26750, expense:0, completion:4.36 },
-        { name:'罗冰(收费)', target:50000, actual:772, recharge:1100, expense:0, completion:1.54 },
-        { name:'无极导量', target:300000, actual:12609, recharge:14100, expense:0, completion:4.2 },
-        { name:'徐晃(免费)', target:450000, actual:17225, recharge:400, expense:0, completion:3.83 },
-        { name:'程清(免费)', target:400000, actual:22390, recharge:50, expense:0, completion:5.6 },
-        { name:'罗冰(免费)', target:600000, actual:35702, recharge:700, expense:0, completion:5.95 },
-        { name:'赵尘(免费)', target:100000, actual:2562, recharge:120, expense:0, completion:2.56 },
-        { name:'范玮琪(免费)', target:0, actual:518, recharge:0, expense:0, completion:0 },
-        { name:'聂淮序(免费)', target:0, actual:26, recharge:0, expense:0, completion:0 },
+        { name:'马奎斯', target:300000, actual:15089, recharge:109350, expense:0, completion:5.03 },
+        { name:'李漫妮', target:450000, actual:35299, recharge:137150, expense:0, completion:7.84 },
+        { name:'易杰', target:500000, actual:32141, recharge:161150, expense:0, completion:6.43 },
+        { name:'范玮琪(收费)', target:650000, actual:67104, recharge:244200, expense:0, completion:10.32 },
+        { name:'王勃(收费)', target:350000, actual:13838, recharge:46950, expense:0, completion:3.95 },
+        { name:'聂淮序(收费)', target:350000, actual:13292, recharge:57220, expense:0, completion:3.8 },
+        { name:'徐晃(收费)', target:200000, actual:14688, recharge:57850, expense:0, completion:7.34 },
+        { name:'罗冰(收费)', target:50000, actual:965, recharge:1200, expense:0, completion:1.93 },
+        { name:'无极导量', target:300000, actual:22224, recharge:34350, expense:0, completion:7.41 },
+        { name:'徐晃(免费)', target:450000, actual:29001, recharge:720, expense:0, completion:6.44 },
+        { name:'程清(免费)', target:400000, actual:36432, recharge:220, expense:0, completion:9.11 },
+        { name:'罗冰(免费)', target:600000, actual:56274, recharge:970, expense:0, completion:9.38 },
+        { name:'赵尘(免费)', target:100000, actual:4297, recharge:220, expense:0, completion:4.3 },
+        { name:'范玮琪(免费)', target:0, actual:929, recharge:300, expense:0, completion:0 },
+        { name:'聂淮序(免费)', target:0, actual:42, recharge:0, expense:0, completion:0 },
       ],
       daily: [
         { date:'11-01', total:203194, rtotal:450840, 马奎斯:8720, 李漫妮:21280, 易杰:18296, '范玮琪(收费)':38474, '王勃(收费)':7779, '聂淮序(收费)':8123, '徐晃(收费)':8718, '罗冰(收费)':772, 无极导量:12609, '徐晃(免费)':17225, '程清(免费)':22390, '罗冰(免费)':35702, '赵尘(免费)':2562, '范玮琪(免费)':518, '聂淮序(免费)':26, r:{ 马奎斯:61550, 李漫妮:73700, 易杰:87200, '范玮琪(收费)':126400, '王勃(收费)':24350, '聂淮序(收费)':34420, '徐晃(收费)':26750, '罗冰(收费)':1100, 无极导量:14100, '徐晃(免费)':400, '程清(免费)':50, '罗冰(免费)':700, '赵尘(免费)':120, '范玮琪(免费)':0, '聂淮序(免费)':0 } },
+        { date:'11-02', total:138421, rtotal:401010, 马奎斯:6369, 李漫妮:14019, 易杰:13845, '范玮琪(收费)':28630, '王勃(收费)':6059, '聂淮序(收费)':5169, '徐晃(收费)':5970, '罗冰(收费)':193, 无极导量:9615, '徐晃(免费)':11776, '程清(免费)':14042, '罗冰(免费)':20572, '赵尘(免费)':1735, '范玮琪(免费)':411, '聂淮序(免费)':16, r:{ 马奎斯:47800, 李漫妮:63450, 易杰:73950, '范玮琪(收费)':117800, '王勃(收费)':22600, '聂淮序(收费)':22800, '徐晃(收费)':31100, '罗冰(收费)':100, 无极导量:20250, '徐晃(免费)':320, '程清(免费)':170, '罗冰(免费)':270, '赵尘(免费)':100, '范玮琪(免费)':300, '聂淮序(免费)':0 } },
       ]
     },
     orders: ordersNov
