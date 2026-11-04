@@ -28,7 +28,22 @@ def fetch(key):
     raw = urllib.request.urlopen(req, timeout=60).read().decode('utf-8', 'replace')
     if raw.lstrip().lower().startswith('<!doctype') or '<html' in raw[:200].lower():
         sys.exit(f'[ERROR] 表 {key} 拉到的是HTML/登录页，可能公开权限被关闭。')
-    return list(csv.reader(io.StringIO(raw)))
+    rows = list(csv.reader(io.StringIO(raw)))
+    if DECIMAL_COMMA:
+        rows = [[de_cell(c) for c in r] for r in rows]
+    return rows
+
+# 2026-11 起四张源表的区域设置为欧洲格式：「.」千分位、「,」小数（如 29.700 = 29700，478299,9 = 478299.9，6,65 = 6.65）。
+# num() 会把逗号当千分位删掉（478299,9 -> 4782999），所以抓表时先把这类单元格转成普通数字。
+# 以后某月的表若改回美式格式（或不带分隔符），把这里设为 False。
+DECIMAL_COMMA = True
+_DE_NUM = re.compile(r"-?\d{1,3}(?:\.\d{3})+(?:,\d+)?%?|-?\d+,\d+%?")
+
+def de_cell(c):
+    t = (c or "").strip()
+    if _DE_NUM.fullmatch(t):
+        return t.replace(".", "").replace(",", ".")
+    return c
 
 def num(s):
     s = (s or '').strip().replace(',', '').replace('%', '')
