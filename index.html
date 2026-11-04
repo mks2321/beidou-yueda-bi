@@ -10321,60 +10321,62 @@ const ordersJul = [
 
 // ===== 渠道码分析数据（由 scripts/update_channel.py 每日重建，勿手改）=====
 const channelData = {
-  updated: '2026-11-04 22:41',
+  updated: '2026-11-05 04:05',
   period: {
     start: '2026-11-01',
     end: '2026-11-04',
     days: 4
   },
   suppliers: {
-    total: 19,
-    withCode: 17,
-    withVolume: 9,
+    total: 25,
+    withCode: 19,
+    withVolume: 13,
     status: [
       { name: '合作中', count: 12 },
-      { name: '待开发', count: 7 }
+      { name: '待开发', count: 9 },
+      { name: '测试中', count: 4 }
     ]
   },
   codes: {
-    total: 95,
-    active: 34,
-    zero: 61,
+    total: 104,
+    active: 60,
+    zero: 44,
     closed: 0
   },
   totals: {
-    add: 14833,
-    cost: 71525.13,
+    add: 29038,
+    cost: 90048.7,
     paidOut: 261281.5,
-    pending: 84660.13,
-    biCost: 22761.15,
-    settlements: 138,
-    recharge: 21650,
-    rechargeUsers: 270
+    pending: 103183.7,
+    biCost: 41284.74,
+    settlements: 147,
+    recharge: 39850,
+    rechargeUsers: 446
   },
   split: [
-    { name: '免费类', codes: 37, active: 17, zero: 20, closed: 0, add: 3220, cost: 4426.6, paidOut: 17000, pending: 4426.6, recharge: 0, rechargeUsers: 0 },
-    { name: '付费类', codes: 58, active: 17, zero: 41, closed: 0, add: 11613, cost: 67098.53, paidOut: 244281.5, pending: 80233.53, recharge: 21650, rechargeUsers: 270 }
+    { name: '免费类', codes: 46, active: 27, zero: 19, closed: 0, add: 7585, cost: 9117.8, paidOut: 17000, pending: 9117.8, recharge: 0, rechargeUsers: 0 },
+    { name: '付费类', codes: 58, active: 33, zero: 25, closed: 0, add: 21453, cost: 80930.9, paidOut: 244281.5, pending: 94065.9, recharge: 39850, rechargeUsers: 446 }
   ],
   subSplit: [
-    { name: '纯免费', codes: 23, active: 10, zero: 13, closed: 0, add: 2858, cost: 3811.9, paidOut: 11000, pending: 3811.9, recharge: 0, rechargeUsers: 0 },
-    { name: '半收费', codes: 14, active: 7, zero: 7, closed: 0, add: 362, cost: 614.7, paidOut: 6000, pending: 614.7, recharge: 0, rechargeUsers: 0 }
+    { name: '纯免费', codes: 28, active: 16, zero: 12, closed: 0, add: 6626, cost: 7853.7, paidOut: 11000, pending: 7853.7, recharge: 0, rechargeUsers: 0 },
+    { name: '半收费', codes: 18, active: 11, zero: 7, closed: 0, add: 959, cost: 1264.1, paidOut: 6000, pending: 1264.1, recharge: 0, rechargeUsers: 0 }
   ],
   supplierSplit: [
-    { name: '新供应商', codes: 55, active: 27, zero: 28, closed: 0, add: 3816, cost: 8569.26, paidOut: 51475, pending: 17049.26, recharge: 3650, rechargeUsers: 26 },
-    { name: '老供应商', codes: 40, active: 7, zero: 33, closed: 0, add: 11017, cost: 62955.87, paidOut: 209806.5, pending: 67610.87, recharge: 18000, rechargeUsers: 244 }
+    { name: '新供应商', codes: 64, active: 37, zero: 27, closed: 0, add: 8696, cost: 15835.33, paidOut: 51475, pending: 24315.33, recharge: 5550, rechargeUsers: 40 },
+    { name: '老供应商', codes: 40, active: 23, zero: 17, closed: 0, add: 20342, cost: 74213.37, paidOut: 209806.5, pending: 78868.37, recharge: 34300, rechargeUsers: 406 }
   ],
   daily: [
-    { d: '2026-11-01', pure: [0, 0, 0, 0, 0, 0], half: [0, 0, 0, 0, 0, 0], paid: [513, 21688.39, 800, 4, 0, 21688.39], ns: [0, 0], os: [513, 21688.39], ac: 1 },
-    { d: '2026-11-02', pure: [711, 892.85, 0, 0, 8000, 892.85], half: [78, 112.61, 0, 0, 6000, 112.61], paid: [3962, 19013.58, 8400, 91, 57538, 16853.58], ns: [986, 3165.46], os: [3765, 16853.58], ac: 21 },
-    { d: '2026-11-03', pure: [2147, 2919.05, 0, 0, 0, 2919.05], half: [284, 502.09, 0, 0, 0, 502.09], paid: [7138, 26396.56, 12450, 175, 173501, 26396.56], ns: [2830, 5403.8], os: [6739, 24413.9], ac: 33 },
-    { d: '2026-11-04', pure: [0, 0, 0, 0, 3000, 0], half: [0, 0, 0, 0, 0, 0], paid: [0, 0, 0, 0, 13242.5, 15295], ns: [0, 0], os: [0, 0], ac: 0 }
+    { d: '2026-11-01', pure: [0, 0, 0, 0, 0, 0], half: [0, 0, 0, 0, 0, 0], paid: [513, 20059.54, 800, 4, 0, 20059.54], ns: [0, 0], os: [513, 20059.54], ac: 1 },
+    { d: '2026-11-02', pure: [711, 871.74, 0, 0, 8000, 871.74], half: [78, 113.31, 0, 0, 6000, 113.31], paid: [3962, 17692.61, 8400, 91, 57538, 15532.61], ns: [986, 3145.05], os: [3765, 15532.61], ac: 21 },
+    { d: '2026-11-03', pure: [2147, 2711.07, 0, 0, 0, 2711.07], half: [284, 455.55, 0, 0, 0, 455.55], paid: [7138, 18175.79, 12450, 175, 173501, 18175.79], ns: [2830, 4301.39], os: [6739, 17041.02], ac: 33 },
+    { d: '2026-11-04', pure: [3768, 4270.89, 0, 0, 3000, 4270.89], half: [597, 695.25, 0, 0, 0, 695.25], paid: [9840, 25002.96, 18200, 176, 13242.5, 40297.96], ns: [4880, 8388.9], os: [9325, 21580.19], ac: 58 }
   ],
   created: [
     { d: '2026-11-01', sup: 0, codes: 7, closed: 0, free: 0, paid: 7 },
     { d: '2026-11-02', sup: 4, codes: 19, closed: 0, free: 14, paid: 5 },
     { d: '2026-11-03', sup: 9, codes: 31, closed: 0, free: 7, paid: 24 },
-    { d: '2026-11-04', sup: 6, codes: 38, closed: 0, free: 16, paid: 22 }
+    { d: '2026-11-04', sup: 12, codes: 43, closed: 0, free: 21, paid: 22 },
+    { d: '2026-11-05', sup: 0, codes: 4, closed: 0, free: 4, paid: 0 }
   ]
 };
 
